@@ -8,7 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -p tsconfig.check.json",
     "db:migrate": "tsx db/run.ts --migrate",
     "db:seed": "tsx db/run.ts --seed",
     "db:setup": "tsx db/run.ts --setup",
