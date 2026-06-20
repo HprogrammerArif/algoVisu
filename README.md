@@ -91,6 +91,7 @@ npx serve frontend -l 5500  # then open http://127.0.0.1:5500
 | [docs/folder-structure.md](docs/folder-structure.md) | full repo tree + the role of every folder |
 | [docs/api-reference.md](docs/api-reference.md) | REST endpoints, payloads, status codes |
 | [docs/run-guide.md](docs/run-guide.md) | set up & run everything locally |
+| [docs/docker-oracle-guide.md](docs/docker-oracle-guide.md) | **beginner Docker + Oracle XE guide** (teaches Docker from scratch) |
 | [docs/presentation-guide.md](docs/presentation-guide.md) | demo script + requirement-to-evidence map |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | phased, step-by-step build plan |
 | [docs/superpowers/specs/](docs/superpowers/specs/) | master design spec |
