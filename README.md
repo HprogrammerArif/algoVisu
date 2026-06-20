@@ -102,7 +102,9 @@ npx serve frontend -l 5500  # then open http://127.0.0.1:5500
 🟢 **Backend implemented (Phases 1–6)** — auth, catalog, admin CRUD, bookmarks, progress;
 **52 tests passing**, typecheck clean (verified without a database via in-memory fakes).
 🟡 **Needs Oracle to verify at runtime** — schema/seed run and the live server boot.
-🟡 **Frontend** — moved into `frontend/` with an API-client layer ready; UI↔API wiring is
-the remaining work (Phase 8).
+🟢 **Frontend** — the visualizer runs as before (now in `frontend/`), **plus** a new
+`frontend/account.html` that exercises the full backend (register/login, Oracle catalog,
+algorithm detail, bookmarks, progress) and deep-links into the visualizer. JS passes
+`node --check`; browser click-through is yours to confirm with the backend running.
 
 See [PROGRESS.md](PROGRESS.md) and [docs/implementation-plan.md](docs/implementation-plan.md).

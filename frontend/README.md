@@ -19,7 +19,8 @@ origin).
 ## Layout
 
 ```
-index.html        the workspace (sidebar / canvas / right drawer)
+index.html        the visualizer workspace (sidebar / canvas / right drawer)
+account.html      account + DB-catalog page (auth, bookmarks, progress) — uses js/api/*
 styles.css        the neon/CRT theme
 js/
   algorithms.js   reversible step-generators (existing engine)
@@ -51,7 +52,8 @@ The `js/api/*` modules expose a `window.QV` namespace once loaded, e.g.:
 </script>
 ```
 
-> **Status:** these client modules are written and ready but are **not yet wired into
-> `index.html`** — that is Phase 8 (replace the hardcoded catalog with API data, add the
-> login/register UI, and bookmarks/progress controls). The existing engine still runs on its
-> built-in data until then. See [../docs/implementation-plan.md](../docs/implementation-plan.md).
+> **Status:** the client modules are wired into **`account.html`** (Phase 8) — register/login,
+> browse the Oracle-backed catalog, view algorithm detail, bookmark, and track progress, with
+> an "Open in Visualizer" deep link back to `index.html`. The visualizer itself still runs on
+> its rich built-in catalog (105 algorithms vs. the DB's 7 seeds) — deeper unification is
+> optional future work. See [../PROGRESS.md](../PROGRESS.md).

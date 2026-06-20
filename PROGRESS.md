@@ -27,7 +27,8 @@
 | 4 | Catalog read: categories, algorithms list (filters) + detail | ✅ | unit + integration |
 | 5 | Catalog admin CRUD (role-guarded, transactional) | ✅ | admin 201 / student 403 / 400 / 409 |
 | 6 | User-data: bookmarks + progress (auth, idempotent/upsert) | ✅ | unit + integration |
-| 7 | Frontend moved to `frontend/`; added `config.js` + `js/api/*` client | n/a | **conservative** — see below |
+| 7 | Frontend moved to `frontend/`; added `config.js` + `js/api/*` client | n/a | relative paths preserved — app still runs |
+| 8 | **Account / DB-catalog page** (`frontend/account.html` + `js/account-page.js`): register/login, browse Oracle catalog, algorithm detail, bookmarks, progress | ⚠️ contract-verified, browser-unverified | additive — visualizer untouched |
 
 **Test/typecheck commands (run now, no DB needed):**
 ```bash
@@ -47,7 +48,13 @@ npm run typecheck # clean
    This is the first time the migrations + Oracle repositories actually hit a database.
 2. **Live server** — `cd backend && npm run dev`, then `curl http://localhost:3000/api/v1/health`,
    and try `POST /api/v1/auth/login` with the seeded admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`).
-3. If anything fails, it'll be Oracle-specific SQL/driver details in
+3. **Account page (Phase 8) in a browser** — with the backend running, serve the frontend
+   (`npx serve frontend -l 5500`) and open `account.html`. Register/login, browse the DB
+   catalog, open an algorithm, bookmark it, set progress. The "API: online/offline" badge
+   tells you if it reached the backend (check `frontend/config.js` `API_BASE_URL` + backend
+   `CORS_ORIGIN`). All JS passes `node --check`; the response shapes it consumes are covered
+   by the backend integration tests, but I could not click through it in a browser here.
+4. If anything fails, it'll be Oracle-specific SQL/driver details in
    `backend/src/infrastructure/database/repositories/*` or `backend/db/*` — the business
    logic above them is already test-covered.
 
@@ -62,20 +69,24 @@ npm run typecheck # clean
   between read (Phase 4) and admin (Phase 5).
 - Added **`@types/oracledb`** — oracledb does not ship its own types (corrected the two docs
   that claimed otherwise).
-- **Frontend: conservative Phase 7 only.** I moved the working app into `frontend/` (relative
-  paths preserved, so it still runs) and added the API client, but did **not** split the big
-  JS files or wire the API into the UI — that's Phase 8 and needs a browser + running backend
-  to verify, which I can't do here. Didn't want to risk breaking the working visualizer blind.
+- **Frontend Phase 8 — additive, not a rewrite.** The client engine has **105** hardcoded
+  algorithms; the DB seeds **7**. Replacing the visualizer's catalog with the DB would *gut*
+  the rich engine, so instead I added a separate **`account.html`** that exercises the full
+  backend (auth + Oracle catalog + bookmarks + progress) through a real UI, and left the
+  visualizer untouched (just a nav link + an optional deep-link). This is the safer and,
+  given the 105-vs-7 content gap, arguably better architecture for this app. The two are
+  linked: account page → "Open in Visualizer" deep-links into `index.html#<id>` for the 6
+  seeded algorithms that have a client generator.
 
 ## Suggested next steps (in order)
 
 1. Run the Oracle verification above; fix any Oracle-specific SQL if needed.
-2. **Phase 8** — wire `frontend/js/api/*` into the UI: replace the hardcoded catalog with
-   `QV.algorithmsApi`, add login/register pages, bookmark + progress controls. (Needs the
-   backend running.)
-3. Optionally split the large `frontend/js/*.js` into the modular layout from
+2. Click through `account.html` in a browser (step 3 above) and confirm the flows.
+3. (Optional) Deeper unification: have the visualizer's own sidebar pull metadata from the
+   DB for algorithms that exist there, and seed more of the 105 algorithms so bookmarks/
+   progress work for all of them (Phase 9 catalog seeding).
+4. (Optional) Split the large `frontend/js/*.js` into the modular layout from
    `docs/folder-structure.md` (pure refactor; do it with the app open in a browser).
-4. Phase 9 — seed the full catalog, end-to-end smoke, polish.
 
 ## Branch / git
 
