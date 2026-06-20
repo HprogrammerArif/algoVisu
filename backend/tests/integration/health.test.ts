@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
-import { createApp } from '../../src/app';
+import { buildTestApp } from '../helpers/buildTestApp';
 
-const app = createApp({ corsOrigin: '*', env: 'test' });
+const { app } = buildTestApp();
 
 describe('health + 404', () => {
   it('GET /api/v1/health returns ok', async () => {

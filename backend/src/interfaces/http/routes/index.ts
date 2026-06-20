@@ -1,9 +1,15 @@
 import { Router } from 'express';
+import { makeAuthRoutes } from './authRoutes';
+import type { Repositories, Services } from '../../../types/dependencies';
 
-const router = Router();
+export function makeApiRouter(repos: Repositories, services: Services): Router {
+  const router = Router();
 
-router.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok', uptime: process.uptime() });
-});
+  router.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', uptime: process.uptime() });
+  });
 
-export default router;
+  router.use('/auth', makeAuthRoutes(repos, services));
+
+  return router;
+}
