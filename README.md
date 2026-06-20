@@ -56,9 +56,9 @@ algoVisu/
 
 Full tree: [docs/folder-structure.md](docs/folder-structure.md).
 
-> Note: implementation hasn't started yet — the `frontend/` and `backend/` folders are
-> created during the build (see the implementation plan). The original prototype currently
-> lives at the repo root (`index.html`, `styles.css`, `js/`) and migrates into `frontend/`.
+> Note: the backend (Phases 1–6) is implemented and tested; the prototype has been moved
+> into `frontend/`. Frontend ↔ API integration (Phase 8) is the main remaining work. See
+> [PROGRESS.md](PROGRESS.md) for exact status.
 
 ---
 
@@ -99,5 +99,10 @@ npx serve frontend -l 5500  # then open http://127.0.0.1:5500
 
 ## Status
 
-📐 **Design & documentation complete.** Implementation is planned but not yet started — see
-[docs/implementation-plan.md](docs/implementation-plan.md).
+🟢 **Backend implemented (Phases 1–6)** — auth, catalog, admin CRUD, bookmarks, progress;
+**52 tests passing**, typecheck clean (verified without a database via in-memory fakes).
+🟡 **Needs Oracle to verify at runtime** — schema/seed run and the live server boot.
+🟡 **Frontend** — moved into `frontend/` with an API-client layer ready; UI↔API wiring is
+the remaining work (Phase 8).
+
+See [PROGRESS.md](PROGRESS.md) and [docs/implementation-plan.md](docs/implementation-plan.md).

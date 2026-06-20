@@ -49,7 +49,7 @@ interfaces.
 | Runtime | Node.js (LTS, ≥ 18) |
 | Framework | Express.js |
 | Build / dev | `tsc` → `dist/` (production build) · `tsx` (dev/watch, runs TS directly) |
-| DB driver | `node-oracledb` (v6+, **thin mode** — no Instant Client needed; ships its own types) |
+| DB driver | `node-oracledb` (v6+, **thin mode** — no Instant Client needed; types via `@types/oracledb`) |
 | Auth | `jsonwebtoken` (JWT) + `bcryptjs` (password hashing) |
 | Validation | `express-validator` (HTTP-boundary input validation) |
 | Config | `dotenv` |

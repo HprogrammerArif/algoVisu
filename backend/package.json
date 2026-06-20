@@ -12,6 +12,7 @@
     "db:migrate": "tsx db/run.ts --migrate",
     "db:seed": "tsx db/run.ts --seed",
     "db:setup": "tsx db/run.ts --setup",
+    "db:reset": "tsx db/run.ts --reset",
     "test": "vitest run",
     "test:watch": "vitest"
   },
