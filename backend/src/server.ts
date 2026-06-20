@@ -2,6 +2,8 @@ import { createApp } from './app';
 import { getConfig } from './config';
 import { initPool, closePool } from './infrastructure/database/connection';
 import { OracleUserRepository } from './infrastructure/database/repositories/OracleUserRepository';
+import { OracleCategoryRepository } from './infrastructure/database/repositories/OracleCategoryRepository';
+import { OracleAlgorithmRepository } from './infrastructure/database/repositories/OracleAlgorithmRepository';
 import { passwordService } from './infrastructure/security/password';
 import { createJwtService } from './infrastructure/security/jwt';
 import type { Repositories, Services } from './types/dependencies';
@@ -12,6 +14,8 @@ async function start(): Promise<void> {
 
   const repositories: Repositories = {
     users: new OracleUserRepository(),
+    categories: new OracleCategoryRepository(),
+    algorithms: new OracleAlgorithmRepository(),
   };
   const services: Services = {
     password: passwordService,

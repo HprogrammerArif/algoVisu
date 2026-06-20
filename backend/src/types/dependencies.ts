@@ -1,4 +1,6 @@
 import type { IUserRepository } from '../domain/repositories/IUserRepository';
+import type { ICategoryRepository } from '../domain/repositories/ICategoryRepository';
+import type { IAlgorithmRepository } from '../domain/repositories/IAlgorithmRepository';
 
 /**
  * The set of repository implementations the app is wired with. The composition
@@ -7,6 +9,8 @@ import type { IUserRepository } from '../domain/repositories/IUserRepository';
  */
 export interface Repositories {
   users: IUserRepository;
+  categories: ICategoryRepository;
+  algorithms: IAlgorithmRepository;
 }
 
 export interface PasswordService {
