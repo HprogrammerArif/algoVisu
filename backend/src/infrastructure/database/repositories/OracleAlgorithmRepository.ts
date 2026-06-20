@@ -93,6 +93,19 @@ export class OracleAlgorithmRepository implements IAlgorithmRepository {
     }
   }
 
+  async exists(id: number): Promise<boolean> {
+    const conn = await getConnection();
+    try {
+      const result = await conn.execute<{ CNT: number }>(
+        `SELECT COUNT(*) AS CNT FROM algorithms WHERE algorithm_id = :id`,
+        { id },
+      );
+      return (result.rows?.[0]?.CNT ?? 0) > 0;
+    } finally {
+      await conn.close();
+    }
+  }
+
   async slugExists(slug: string, excludeId?: number): Promise<boolean> {
     const conn = await getConnection();
     try {

@@ -7,12 +7,16 @@ import {
   createFakeAlgorithmRepository,
   type FakeAlgorithmRepository,
 } from './fakeAlgorithmRepository';
+import { createFakeBookmarkRepository, type FakeBookmarkRepository } from './fakeBookmarkRepository';
+import { createFakeProgressRepository, type FakeProgressRepository } from './fakeProgressRepository';
 import type { Services } from '../../src/types/dependencies';
 
 export interface TestRepositories {
   users: FakeUserRepository;
   categories: FakeCategoryRepository;
   algorithms: FakeAlgorithmRepository;
+  bookmarks: FakeBookmarkRepository;
+  progress: FakeProgressRepository;
 }
 
 export interface TestContext {
@@ -26,10 +30,13 @@ export interface TestContext {
  * (test-secret) services. Exercises the entire HTTP + use-case stack without Oracle.
  */
 export function buildTestApp(): TestContext {
+  const algorithms = createFakeAlgorithmRepository();
   const repositories: TestRepositories = {
     users: createFakeUserRepository(),
     categories: createFakeCategoryRepository(),
-    algorithms: createFakeAlgorithmRepository(),
+    algorithms,
+    bookmarks: createFakeBookmarkRepository(algorithms),
+    progress: createFakeProgressRepository(algorithms),
   };
   const services: Services = {
     password: passwordService,

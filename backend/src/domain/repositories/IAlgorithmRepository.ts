@@ -28,6 +28,7 @@ export interface IAlgorithmRepository {
   findAll(filters: AlgorithmFilters): Promise<AlgorithmSummary[]>;
   findBySlug(slug: string): Promise<AlgorithmDetail | null>;
   findById(id: number): Promise<AlgorithmDetail | null>;
+  exists(id: number): Promise<boolean>;
   create(algorithm: NewAlgorithm): Promise<AlgorithmDetail>;
   update(id: number, algorithm: NewAlgorithm): Promise<AlgorithmDetail | null>;
   remove(id: number): Promise<boolean>;

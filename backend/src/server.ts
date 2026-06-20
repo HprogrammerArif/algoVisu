@@ -4,6 +4,8 @@ import { initPool, closePool } from './infrastructure/database/connection';
 import { OracleUserRepository } from './infrastructure/database/repositories/OracleUserRepository';
 import { OracleCategoryRepository } from './infrastructure/database/repositories/OracleCategoryRepository';
 import { OracleAlgorithmRepository } from './infrastructure/database/repositories/OracleAlgorithmRepository';
+import { OracleBookmarkRepository } from './infrastructure/database/repositories/OracleBookmarkRepository';
+import { OracleProgressRepository } from './infrastructure/database/repositories/OracleProgressRepository';
 import { passwordService } from './infrastructure/security/password';
 import { createJwtService } from './infrastructure/security/jwt';
 import type { Repositories, Services } from './types/dependencies';
@@ -16,6 +18,8 @@ async function start(): Promise<void> {
     users: new OracleUserRepository(),
     categories: new OracleCategoryRepository(),
     algorithms: new OracleAlgorithmRepository(),
+    bookmarks: new OracleBookmarkRepository(),
+    progress: new OracleProgressRepository(),
   };
   const services: Services = {
     password: passwordService,

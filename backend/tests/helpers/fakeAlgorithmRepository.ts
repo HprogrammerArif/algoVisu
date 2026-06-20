@@ -77,6 +77,9 @@ export function createFakeAlgorithmRepository(
     async findById(id) {
       return items.find((a) => a.id === id) ?? null;
     },
+    async exists(id) {
+      return items.some((a) => a.id === id);
+    },
     async slugExists(slug, excludeId) {
       return items.some((a) => a.slug === slug && a.id !== excludeId);
     },
