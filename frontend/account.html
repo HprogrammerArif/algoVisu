@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuantumViz // Account &amp; DB Catalog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Page-specific layout — reuses the theme variables from styles.css */
+    #acct-main { display: grid; grid-template-columns: 340px 1fr; gap: 16px; padding: 16px; }
+    .acct-card { border: 1px solid var(--border, #1e293b); border-radius: 8px; padding: 14px; background: rgba(10, 14, 24, 0.6); margin-bottom: 16px; }
+    .acct-card h3 { font-family: var(--mono, 'Share Tech Mono'); font-size: 12px; letter-spacing: 1px; color: var(--neon-green, #39ff14); margin: 0 0 10px; text-transform: uppercase; }
+    .acct-field { width: 100%; padding: 8px; margin: 4px 0 10px; background: #0a0e18; border: 1px solid #1e293b; color: #e2e8f0; border-radius: 4px; font-family: var(--mono, monospace); font-size: 12px; }
+    .acct-btn { cursor: pointer; padding: 8px 12px; border: 1px solid var(--neon-green, #39ff14); color: var(--neon-green, #39ff14); background: transparent; border-radius: 4px; font-family: var(--mono, monospace); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+    .acct-btn:hover { background: rgba(57, 255, 20, 0.1); }
+    .acct-btn.pink { border-color: var(--neon-pink, #ff2e97); color: var(--neon-pink, #ff2e97); }
+    .acct-muted { color: #64748b; font-size: 11px; }
+    .acct-pill { display: inline-block; cursor: pointer; padding: 4px 10px; margin: 2px; border: 1px solid #1e293b; border-radius: 999px; font-family: var(--mono, monospace); font-size: 10px; color: #94a3b8; }
+    .acct-pill.active { border-color: var(--neon-cyan, #00eaff); color: var(--neon-cyan, #00eaff); }
+    .acct-item { cursor: pointer; padding: 10px; border: 1px solid #1e293b; border-radius: 6px; margin-bottom: 8px; }
+    .acct-item:hover { border-color: var(--neon-cyan, #00eaff); }
+    .acct-item .nm { font-weight: 700; color: #e2e8f0; }
+    .acct-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .cplx-table { width: 100%; border-collapse: collapse; font-family: var(--mono, monospace); font-size: 11px; margin: 8px 0; }
+    .cplx-table td, .cplx-table th { border: 1px solid #1e293b; padding: 4px 8px; text-align: left; color: #cbd5e1; }
+    pre.code { background: #060912; border: 1px solid #1e293b; border-radius: 6px; padding: 10px; overflow: auto; font-family: var(--mono, monospace); font-size: 11px; color: #c8f5d0; max-height: 320px; }
+    .code-tab { cursor: pointer; padding: 3px 9px; margin-right: 4px; border: 1px solid #1e293b; border-radius: 4px 4px 0 0; font-family: var(--mono, monospace); font-size: 10px; color: #94a3b8; }
+    .code-tab.active { border-color: var(--neon-green, #39ff14); color: var(--neon-green, #39ff14); }
+    #toast-area { position: fixed; right: 16px; bottom: 16px; z-index: 50; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 10px 14px; border-radius: 6px; font-family: var(--mono, monospace); font-size: 11px; border: 1px solid; background: #0a0e18; }
+    .toast.ok { border-color: var(--neon-green, #39ff14); color: var(--neon-green, #39ff14); }
+    .toast.err { border-color: var(--neon-pink, #ff2e97); color: var(--neon-pink, #ff2e97); }
+    .hidden { display: none; }
+    a.acct-link { color: var(--neon-cyan, #00eaff); text-decoration: none; font-family: var(--mono, monospace); font-size: 11px; }
+  </style>
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">QUANTUM<em>VlZ</em> // ACCOUNT</div>
+    <div class="sys-status">
+      <span id="api-status">API: checking…</span>
+      <span>|</span>
+      <a class="acct-link" href="index.html">← Back to Visualizer</a>
+    </div>
+  </header>
+
+  <div id="acct-main">
+    <!-- LEFT: auth + my account -->
+    <div>
+      <div class="acct-card" id="auth-card">
+        <h3>Account</h3>
+
+        <div id="auth-logged-out">
+          <div id="login-box">
+            <input class="acct-field" id="login-email" type="email" placeholder="email" />
+            <input class="acct-field" id="login-password" type="password" placeholder="password" />
+            <button class="acct-btn" id="btn-login">Log in</button>
+            <p class="acct-muted">No account? <a class="acct-link" id="show-register" href="#">Register</a></p>
+          </div>
+          <div id="register-box" class="hidden">
+            <input class="acct-field" id="register-fullname" type="text" placeholder="full name" />
+            <input class="acct-field" id="register-email" type="email" placeholder="email" />
+            <input class="acct-field" id="register-password" type="password" placeholder="password (min 8)" />
+            <button class="acct-btn" id="btn-register">Create account</button>
+            <p class="acct-muted">Have an account? <a class="acct-link" id="show-login" href="#">Log in</a></p>
+          </div>
+        </div>
+
+        <div id="auth-logged-in" class="hidden">
+          <p id="auth-user-info" class="acct-muted"></p>
+          <button class="acct-btn pink" id="btn-logout">Log out</button>
+        </div>
+      </div>
+
+      <div class="acct-card hidden" id="my-account">
+        <h3>My Bookmarks</h3>
+        <div id="bookmark-list"><p class="acct-muted">None yet.</p></div>
+        <h3 style="margin-top:14px;">My Progress</h3>
+        <div id="progress-list"><p class="acct-muted">None yet.</p></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: catalog + detail -->
+    <div>
+      <div class="acct-card">
+        <h3>DB Catalog (from Oracle)</h3>
+        <div id="category-pills"></div>
+        <input class="acct-field" id="catalog-search" type="text" placeholder="🔍 search algorithms…" style="margin-top:10px;" />
+        <div id="algo-list" style="margin-top:10px;"><p class="acct-muted">Loading…</p></div>
+      </div>
+
+      <div class="acct-card" id="detail-panel">
+        <h3>Detail</h3>
+        <p class="acct-muted" id="detail-empty">Select an algorithm to see its DB record.</p>
+        <div id="detail-body" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-area"></div>
+
+  <!-- API client + page logic (vanilla, no build) -->
+  <script src="config.js"></script>
+  <script src="js/api/client.js"></script>
+  <script src="js/api/authApi.js"></script>
+  <script src="js/api/algorithmsApi.js"></script>
+  <script src="js/api/bookmarksApi.js"></script>
+  <script src="js/api/progressApi.js"></script>
+  <script src="js/account-page.js"></script>
+</body>
+</html>

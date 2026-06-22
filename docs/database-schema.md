@@ -211,6 +211,12 @@ in a category does not erase the category).
 
 ## 6. Seed data (initial)
 
+> **Seeding approach:** seeds are applied by **TypeScript seeders** (`backend/db/seeds/*.ts`,
+> run via `tsx` from `db/run.ts`) using **bind variables** rather than raw `.sql` INSERTs.
+> This is required for bcrypt-hashing the admin password and is far safer for CLOB code
+> snippets (whose semicolons/quotes would break raw-SQL literals). All DDL stays as
+> hand-written Oracle `.sql` migrations.
+
 Seeded by `backend/db/seeds/`:
 
 - **roles:** admin, teacher, student.
@@ -237,11 +243,11 @@ backend/db/migrations/
   009_create_notes.sql            -- optional
   010_create_tags.sql             -- optional
 backend/db/seeds/
-  001_seed_roles.sql
-  002_seed_admin_user.sql
-  003_seed_categories.sql
-  004_seed_algorithms.sql
+  seedRoles.ts
+  seedAdmin.ts        -- bcrypt-hashes ADMIN_PASSWORD
+  seedCategories.ts
+  seedCatalog.ts      -- algorithms + complexities + code snippets
 ```
 
-`backend/db/run.ts` (run via `tsx`) applies migrations then seeds, in filename order, against the
+`backend/db/run.ts` (run via `tsx`) applies the `.sql` migrations then the TypeScript seeders, against the
 configured Oracle connection.

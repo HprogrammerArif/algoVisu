@@ -41,6 +41,10 @@ docker run -d --name oracle-xe \
 The `gvenzl/oracle-xe` image auto-creates the `APP_USER` inside `XEPDB1`. If you use this,
 **skip step 2** (the app user already exists).
 
+> 🐳 **New to Docker?** Follow the step-by-step, beginner-friendly
+> **[docker-oracle-guide.md](docker-oracle-guide.md)** — it teaches Docker from scratch and
+> walks through this exact Oracle setup for QuantumViz.
+
 ---
 
 ## 2. Create the application schema/user (native install only)

@@ -107,6 +107,7 @@ relevant here:)
     "@types/jsonwebtoken": "^9.0.6",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.14.0",
+    "@types/oracledb": "^7.0.1",
     "@types/supertest": "^6.0.2",
     "supertest": "^7.0.0",
     "tsx": "^4.16.0",
@@ -116,7 +117,8 @@ relevant here:)
 }
 ```
 
-> `node-oracledb` and `express-validator` ship their own TypeScript types — no `@types` needed.
+> `express-validator` ships its own TypeScript types, but `node-oracledb` does **not** — it
+> needs `@types/oracledb` (added above).
 
 - [ ] **Step 2: Create `backend/tsconfig.json`**
 
