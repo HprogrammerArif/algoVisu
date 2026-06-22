@@ -234,7 +234,7 @@ EXIT;
 > Prefer a GUI? **Oracle SQL Developer** or the VS Code **Oracle** extension can connect to
 > `localhost:1521`, service `XEPDB1`, user `quantumviz` — same credentials.
 
-### 3.4 Reset just the app data (re-seed)
+### 3.4 Reset just the app data (re-seed) updated
 
 To wipe and rebuild the QuantumViz tables (without touching Oracle itself):
 ```powershell
