@@ -1,0 +1,618 @@
+export type Difficulty = 'easy' | 'medium' | 'hard';
+export type VisualizerType = 'array' | 'grid' | 'graph' | 'matrix' | 'string' | 'math';
+
+export interface SeedAlgorithm {
+  categorySlug: string;
+  slug: string;
+  name: string;
+  summary: string;
+  description: string;
+  visualizerType: VisualizerType;
+  difficulty: Difficulty;
+  spaceComplexity: string;
+  time: { best: string; average: string; worst: string };
+  snippets: { language: 'javascript' | 'pseudocode'; code: string }[];
+}
+
+export const ALGORITHMS: SeedAlgorithm[] = [
+  {
+    categorySlug: 'sorting',
+    slug: 'bubble-sort',
+    name: 'Bubble Sort',
+    summary: 'Repeatedly swaps adjacent out-of-order elements until sorted.',
+    description:
+      'Bubble sort steps through the list, compares adjacent pairs, and swaps them if they are in the wrong order. After each pass the next largest element "bubbles" to the end. Simple but inefficient on large inputs.',
+    visualizerType: 'array',
+    difficulty: 'easy',
+    spaceComplexity: 'O(1)',
+    time: { best: 'O(n)', average: 'O(n^2)', worst: 'O(n^2)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function bubbleSort(a) {',
+          '  for (let i = 0; i < a.length - 1; i++) {',
+          '    let swapped = false;',
+          '    for (let j = 0; j < a.length - 1 - i; j++) {',
+          '      if (a[j] > a[j + 1]) {',
+          '        [a[j], a[j + 1]] = [a[j + 1], a[j]];',
+          '        swapped = true;',
+          '      }',
+          '    }',
+          '    if (!swapped) break;',
+          '  }',
+          '  return a;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'for i from 0 to n-2',
+          '  for j from 0 to n-2-i',
+          '    if A[j] > A[j+1] then swap(A[j], A[j+1])',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'sorting',
+    slug: 'selection-sort',
+    name: 'Selection Sort',
+    summary: 'Selects the minimum of the unsorted part and places it next.',
+    description:
+      'Selection sort divides the array into a sorted prefix and an unsorted suffix. Each pass finds the minimum of the suffix and swaps it into place. Always O(n^2) comparisons but minimizes the number of swaps.',
+    visualizerType: 'array',
+    difficulty: 'easy',
+    spaceComplexity: 'O(1)',
+    time: { best: 'O(n^2)', average: 'O(n^2)', worst: 'O(n^2)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function selectionSort(a) {',
+          '  for (let i = 0; i < a.length - 1; i++) {',
+          '    let min = i;',
+          '    for (let j = i + 1; j < a.length; j++) {',
+          '      if (a[j] < a[min]) min = j;',
+          '    }',
+          '    if (min !== i) [a[i], a[min]] = [a[min], a[i]];',
+          '  }',
+          '  return a;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'for i from 0 to n-2',
+          '  min = i',
+          '  for j from i+1 to n-1',
+          '    if A[j] < A[min] then min = j',
+          '  swap(A[i], A[min])',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'sorting',
+    slug: 'insertion-sort',
+    name: 'Insertion Sort',
+    summary: 'Builds the sorted array one element at a time by insertion.',
+    description:
+      'Insertion sort takes each element and inserts it into its correct position among the already-sorted elements to its left. Efficient for small or nearly-sorted inputs.',
+    visualizerType: 'array',
+    difficulty: 'easy',
+    spaceComplexity: 'O(1)',
+    time: { best: 'O(n)', average: 'O(n^2)', worst: 'O(n^2)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function insertionSort(a) {',
+          '  for (let i = 1; i < a.length; i++) {',
+          '    const key = a[i];',
+          '    let j = i - 1;',
+          '    while (j >= 0 && a[j] > key) {',
+          '      a[j + 1] = a[j];',
+          '      j--;',
+          '    }',
+          '    a[j + 1] = key;',
+          '  }',
+          '  return a;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'for i from 1 to n-1',
+          '  key = A[i]; j = i-1',
+          '  while j >= 0 and A[j] > key',
+          '    A[j+1] = A[j]; j = j-1',
+          '  A[j+1] = key',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'sorting',
+    slug: 'merge-sort',
+    name: 'Merge Sort',
+    summary: 'Divides the array, sorts halves, then merges them in order.',
+    description:
+      'Merge sort recursively splits the array into halves until each piece has one element, then merges adjacent pieces back together in sorted order. A stable, predictable O(n log n) divide-and-conquer sort that uses O(n) extra space for the merge buffer.',
+    visualizerType: 'array',
+    difficulty: 'medium',
+    spaceComplexity: 'O(n)',
+    time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n log n)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function mergeSort(a) {',
+          '  if (a.length <= 1) return a;',
+          '  const mid = a.length >> 1;',
+          '  const left = mergeSort(a.slice(0, mid));',
+          '  const right = mergeSort(a.slice(mid));',
+          '  const out = [];',
+          '  let i = 0, j = 0;',
+          '  while (i < left.length && j < right.length) {',
+          '    out.push(left[i] <= right[j] ? left[i++] : right[j++]);',
+          '  }',
+          '  return out.concat(left.slice(i), right.slice(j));',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'mergeSort(A):',
+          '  if length(A) <= 1 return A',
+          '  L = mergeSort(left half); R = mergeSort(right half)',
+          '  return merge(L, R)   // merge two sorted lists',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'sorting',
+    slug: 'quick-sort',
+    name: 'Quick Sort',
+    summary: 'Partitions around a pivot, then sorts each side recursively.',
+    description:
+      'Quick sort picks a pivot and partitions the array so smaller elements go left and larger go right (Lomuto scheme), then recurses on each side. Very fast on average (O(n log n)); degrades to O(n^2) on already-sorted input with a poor pivot. Sorts in place.',
+    visualizerType: 'array',
+    difficulty: 'medium',
+    spaceComplexity: 'O(log n)',
+    time: { best: 'O(n log n)', average: 'O(n log n)', worst: 'O(n^2)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function quickSort(a, lo = 0, hi = a.length - 1) {',
+          '  if (lo >= hi) return a;',
+          '  const pivot = a[hi];',
+          '  let p = lo;',
+          '  for (let j = lo; j < hi; j++) {',
+          '    if (a[j] <= pivot) { [a[p], a[j]] = [a[j], a[p]]; p++; }',
+          '  }',
+          '  [a[p], a[hi]] = [a[hi], a[p]];',
+          '  quickSort(a, lo, p - 1);',
+          '  quickSort(a, p + 1, hi);',
+          '  return a;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'quickSort(A, lo, hi):',
+          '  if lo >= hi return',
+          '  p = partition(A, lo, hi)   // Lomuto: pivot = A[hi]',
+          '  quickSort(A, lo, p-1); quickSort(A, p+1, hi)',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'searching',
+    slug: 'linear-search',
+    name: 'Linear Search',
+    summary: 'Scans each element in turn until the target is found.',
+    description:
+      'Linear search checks each element from start to end, returning the index of the first match. Works on unsorted data; O(n) in the worst case.',
+    visualizerType: 'array',
+    difficulty: 'easy',
+    spaceComplexity: 'O(1)',
+    time: { best: 'O(1)', average: 'O(n)', worst: 'O(n)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function linearSearch(a, target) {',
+          '  for (let i = 0; i < a.length; i++) {',
+          '    if (a[i] === target) return i;',
+          '  }',
+          '  return -1;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: ['for i from 0 to n-1', '  if A[i] == target then return i', 'return -1'].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'searching',
+    slug: 'binary-search',
+    name: 'Binary Search',
+    summary: 'Halves a sorted range each step to find the target in O(log n).',
+    description:
+      'Binary search repeatedly compares the target to the middle element of a sorted range and discards the half that cannot contain it. Requires sorted input.',
+    visualizerType: 'array',
+    difficulty: 'easy',
+    spaceComplexity: 'O(1)',
+    time: { best: 'O(1)', average: 'O(log n)', worst: 'O(log n)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function binarySearch(a, target) {',
+          '  let lo = 0, hi = a.length - 1;',
+          '  while (lo <= hi) {',
+          '    const mid = (lo + hi) >> 1;',
+          '    if (a[mid] === target) return mid;',
+          '    if (a[mid] < target) lo = mid + 1;',
+          '    else hi = mid - 1;',
+          '  }',
+          '  return -1;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'lo = 0; hi = n-1',
+          'while lo <= hi',
+          '  mid = (lo + hi) / 2',
+          '  if A[mid] == target then return mid',
+          '  else if A[mid] < target then lo = mid+1',
+          '  else hi = mid-1',
+          'return -1',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'graph',
+    slug: 'breadth-first-search',
+    name: 'Breadth-First Search',
+    summary: 'Explores a graph level by level using a queue.',
+    description:
+      'BFS visits all neighbours of a node before moving to the next level, using a FIFO queue. It finds the shortest path in unweighted graphs.',
+    visualizerType: 'graph',
+    difficulty: 'medium',
+    spaceComplexity: 'O(V)',
+    time: { best: 'O(V + E)', average: 'O(V + E)', worst: 'O(V + E)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function bfs(graph, start) {',
+          '  const visited = new Set([start]);',
+          '  const queue = [start];',
+          '  const order = [];',
+          '  while (queue.length) {',
+          '    const node = queue.shift();',
+          '    order.push(node);',
+          '    for (const next of graph[node]) {',
+          '      if (!visited.has(next)) {',
+          '        visited.add(next);',
+          '        queue.push(next);',
+          '      }',
+          '    }',
+          '  }',
+          '  return order;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'enqueue(start); mark start visited',
+          'while queue not empty',
+          '  node = dequeue()',
+          '  for each neighbour of node',
+          '    if not visited then mark visited and enqueue(neighbour)',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'graph',
+    slug: 'depth-first-search',
+    name: 'Depth-First Search',
+    summary: 'Explores as far as possible along each branch before backtracking.',
+    description:
+      'DFS follows one path to its end, then backtracks to explore alternatives, using a stack (or recursion). Useful for connectivity, cycle detection, and topological sorting.',
+    visualizerType: 'graph',
+    difficulty: 'medium',
+    spaceComplexity: 'O(V)',
+    time: { best: 'O(V + E)', average: 'O(V + E)', worst: 'O(V + E)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function dfs(graph, start) {',
+          '  const visited = new Set();',
+          '  const order = [];',
+          '  (function visit(node) {',
+          '    visited.add(node);',
+          '    order.push(node);',
+          '    for (const next of graph[node]) {',
+          '      if (!visited.has(next)) visit(next);',
+          '    }',
+          '  })(start);',
+          '  return order;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'visit(node):',
+          '  mark node visited',
+          '  for each neighbour of node',
+          '    if not visited then visit(neighbour)',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'graph',
+    slug: 'dijkstra',
+    name: "Dijkstra's Shortest Path",
+    summary: 'Finds shortest paths from a source over non-negative weights.',
+    description:
+      "Dijkstra's algorithm grows a set of finalized vertices, each time picking the unvisited vertex with the smallest tentative distance and relaxing its outgoing edges. It computes shortest paths from one source to all vertices in a graph with non-negative edge weights.",
+    visualizerType: 'graph',
+    difficulty: 'hard',
+    spaceComplexity: 'O(V)',
+    time: { best: 'O(E + V log V)', average: 'O(E + V log V)', worst: 'O(E + V log V)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function dijkstra(graph, src) {',
+          '  const dist = {}; const done = new Set();',
+          '  for (const v in graph) dist[v] = Infinity;',
+          '  dist[src] = 0;',
+          '  while (done.size < Object.keys(graph).length) {',
+          '    let u = null;',
+          '    for (const v in graph) if (!done.has(v) && (u === null || dist[v] < dist[u])) u = v;',
+          '    if (u === null || dist[u] === Infinity) break;',
+          '    done.add(u);',
+          '    for (const { to, w } of graph[u]) {',
+          '      if (dist[u] + w < dist[to]) dist[to] = dist[u] + w;',
+          '    }',
+          '  }',
+          '  return dist;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'dist[src] = 0; others = infinity',
+          'while unfinished vertices remain:',
+          '  u = unfinished vertex with smallest dist',
+          '  mark u finished',
+          '  for each edge (u, v, w): dist[v] = min(dist[v], dist[u] + w)',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'grid',
+    slug: 'a-star',
+    name: 'A* Pathfinding',
+    summary: 'Best-first grid search guided by a heuristic (f = g + h).',
+    description:
+      'A* searches a grid for the shortest path by always expanding the frontier cell with the lowest f = g + h, where g is the cost so far and h is a heuristic estimate (Manhattan distance) to the goal. With an admissible heuristic it finds an optimal path while exploring far fewer cells than uninformed search.',
+    visualizerType: 'grid',
+    difficulty: 'hard',
+    spaceComplexity: 'O(V)',
+    time: { best: 'O(E)', average: 'O(E log V)', worst: 'O(E log V)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function aStar(grid, start, goal) {',
+          '  const h = (p) => Math.abs(p[0]-goal[0]) + Math.abs(p[1]-goal[1]);',
+          '  const open = [start]; const g = { [start]: 0 }; const came = {};',
+          '  while (open.length) {',
+          '    open.sort((a, b) => (g[a]+h(a)) - (g[b]+h(b)));',
+          '    const cur = open.shift();',
+          '    if (cur[0]===goal[0] && cur[1]===goal[1]) return reconstruct(came, cur);',
+          '    for (const nb of neighbours(grid, cur)) {',
+          '      const t = g[cur] + 1;',
+          '      if (g[nb] === undefined || t < g[nb]) { g[nb] = t; came[nb] = cur; open.push(nb); }',
+          '    }',
+          '  }',
+          '  return null;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'open = {start}; g[start] = 0',
+          'while open not empty:',
+          '  current = node in open with lowest g + h',
+          '  if current == goal: return path',
+          '  for each neighbour n: relax g[n], add n to open',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'dynamic-programming',
+    slug: 'knapsack-01',
+    name: '0/1 Knapsack',
+    summary: 'Maximizes value within a weight budget; each item taken once.',
+    description:
+      'The 0/1 knapsack problem fills a table dp[i][w] = the best value achievable using the first i items within capacity w. Each cell either excludes item i (dp[i-1][w]) or includes it (value[i] + dp[i-1][w-weight[i]]) when it fits. The answer is the bottom-right cell.',
+    visualizerType: 'matrix',
+    difficulty: 'medium',
+    spaceComplexity: 'O(nW)',
+    time: { best: 'O(nW)', average: 'O(nW)', worst: 'O(nW)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function knapsack(weights, values, W) {',
+          '  const n = weights.length;',
+          '  const dp = Array.from({ length: n + 1 }, () => Array(W + 1).fill(0));',
+          '  for (let i = 1; i <= n; i++) {',
+          '    for (let w = 0; w <= W; w++) {',
+          '      dp[i][w] = dp[i - 1][w];',
+          '      if (weights[i - 1] <= w) {',
+          '        dp[i][w] = Math.max(dp[i][w], values[i - 1] + dp[i - 1][w - weights[i - 1]]);',
+          '      }',
+          '    }',
+          '  }',
+          '  return dp[n][W];',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'dp[0][*] = 0',
+          'for i in 1..n, for w in 0..W:',
+          '  dp[i][w] = dp[i-1][w]',
+          '  if weight[i] <= w:',
+          '    dp[i][w] = max(dp[i][w], value[i] + dp[i-1][w-weight[i]])',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'string',
+    slug: 'kmp-search',
+    name: 'KMP Pattern Search',
+    summary: 'Substring search that never re-checks characters, via an LPS table.',
+    description:
+      'The Knuth-Morris-Pratt algorithm preprocesses the pattern into a longest-proper-prefix-suffix (LPS) table, then scans the text once. On a mismatch it consults the LPS table to skip ahead without re-comparing characters already known to match, giving O(n + m) time.',
+    visualizerType: 'string',
+    difficulty: 'hard',
+    spaceComplexity: 'O(m)',
+    time: { best: 'O(n)', average: 'O(n + m)', worst: 'O(n + m)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function kmp(text, pat) {',
+          '  const lps = Array(pat.length).fill(0);',
+          '  for (let i = 1, len = 0; i < pat.length; ) {',
+          '    if (pat[i] === pat[len]) lps[i++] = ++len;',
+          '    else if (len) len = lps[len - 1];',
+          '    else lps[i++] = 0;',
+          '  }',
+          '  for (let i = 0, j = 0; i < text.length; ) {',
+          '    if (text[i] === pat[j]) { i++; j++; if (j === pat.length) return i - j; }',
+          '    else if (j) j = lps[j - 1];',
+          '    else i++;',
+          '  }',
+          '  return -1;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'build LPS table for pattern',
+          'i = 0 (text), j = 0 (pattern)',
+          'on match: advance both; if j == m report match, j = LPS[j-1]',
+          'on mismatch: j = LPS[j-1] if j>0 else advance i',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'math',
+    slug: 'sieve-of-eratosthenes',
+    name: 'Sieve of Eratosthenes',
+    summary: 'Finds all primes up to n by crossing out multiples.',
+    description:
+      'The Sieve of Eratosthenes lists the integers up to n and repeatedly takes the next number still marked prime, crossing out all of its multiples. What remains unmarked are the primes. Runs in O(n log log n).',
+    visualizerType: 'math',
+    difficulty: 'easy',
+    spaceComplexity: 'O(n)',
+    time: { best: 'O(n log log n)', average: 'O(n log log n)', worst: 'O(n log log n)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function sieve(n) {',
+          '  const isPrime = Array(n + 1).fill(true);',
+          '  isPrime[0] = isPrime[1] = false;',
+          '  for (let p = 2; p * p <= n; p++) {',
+          '    if (isPrime[p]) {',
+          '      for (let m = p * p; m <= n; m += p) isPrime[m] = false;',
+          '    }',
+          '  }',
+          '  return isPrime.flatMap((v, i) => (v ? [i] : []));',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'mark all 2..n as prime',
+          'for p from 2 while p*p <= n:',
+          '  if p is prime: mark p*p, p*p+p, ... as composite',
+          'remaining marked numbers are prime',
+        ].join('\n'),
+      },
+    ],
+  },
+  {
+    categorySlug: 'math',
+    slug: 'tower-of-hanoi',
+    name: 'Tower of Hanoi',
+    summary: 'Moves a stack of disks between pegs, never placing larger on smaller.',
+    description:
+      'Tower of Hanoi moves n disks from a source peg to a target peg using one auxiliary peg, moving one disk at a time and never placing a larger disk on a smaller one. The recursive solution moves n-1 disks aside, moves the largest disk, then moves the n-1 back — requiring 2^n - 1 moves.',
+    visualizerType: 'math',
+    difficulty: 'medium',
+    spaceComplexity: 'O(n)',
+    time: { best: 'O(2^n)', average: 'O(2^n)', worst: 'O(2^n)' },
+    snippets: [
+      {
+        language: 'javascript',
+        code: [
+          'function hanoi(n, from, to, aux, moves = []) {',
+          '  if (n === 0) return moves;',
+          '  hanoi(n - 1, from, aux, to, moves);',
+          '  moves.push([from, to]);',
+          '  hanoi(n - 1, aux, to, from, moves);',
+          '  return moves;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        language: 'pseudocode',
+        code: [
+          'hanoi(n, from, to, aux):',
+          '  if n == 0 return',
+          '  hanoi(n-1, from, aux, to)',
+          '  move disk n from `from` to `to`',
+          '  hanoi(n-1, aux, to, from)',
+        ].join('\n'),
+      },
+    ],
+  },
+];

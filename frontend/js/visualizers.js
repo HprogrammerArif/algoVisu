@@ -16,35 +16,38 @@ function drawArray(arr, stepObj) {
   const activeIdx = (stepObj.type === 'active' || stepObj.type === 'compare') ? stepObj.i : null;
   const compareIdx = (stepObj.type === 'compare') ? stepObj.j : null;
   const pivotIdx = (stepObj.type === 'pivot') ? stepObj.index : null;
-  
+  const swapPair = (stepObj.type === 'swap') ? [stepObj.i, stepObj.j] : null;
+
   arr.forEach((val, idx) => {
     const col = document.createElement('div');
     col.className = 'array-bar-col';
-    
+
     const bar = document.createElement('div');
     bar.className = 'array-bar';
-    
+
     // Normalize height between 5% and 95%
     const heightPercent = 5 + (val / maxVal) * 85;
     bar.style.height = `${heightPercent}%`;
-    
+
     // Assign interactive visualizer highlight status classes
-    if (idx === activeIdx) {
+    if (swapPair && (idx === swapPair[0] || idx === swapPair[1])) {
+      bar.classList.add('state-pivot');           // swapped elements flash
+    } else if (idx === activeIdx) {
       bar.classList.add('state-active');
     } else if (idx === compareIdx) {
       bar.classList.add('state-compare');
     } else if (idx === pivotIdx) {
       bar.classList.add('state-pivot');
     } else if (stepObj.type === 'sorted' && idx <= stepObj.index) {
-      bar.classList.add('state-sorted');
+      bar.classList.add('state-sorted');           // sort progress / search hit
     } else if (stepObj.type === 'done') {
       bar.classList.add('state-sorted');
     }
-    
+
     const text = document.createElement('div');
     text.className = 'array-val';
     text.innerText = val;
-    
+
     col.appendChild(bar);
     col.appendChild(text);
     container.appendChild(col);

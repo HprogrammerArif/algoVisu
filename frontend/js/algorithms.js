@@ -378,7 +378,7 @@ STUB_ALGO_COGNITIVE.forEach(info => {
 // 2. SEARCHING (8 ALGORITHMS)
 // ───────────────────────────────────────────────────────────
 addAlgo('linearsearch', 'Linear Search', 'search', 'O(n)', 'O(1)', 'array', function* linearSearch(arr) {
-  const target = 55;
+  const target = arr[arr.length - 2] !== undefined ? arr[arr.length - 2] : arr[0];
   yield { type: 'active', index: 0, log: `Look for target ${target}`, vars: { target } };
   for (let i = 0; i < arr.length; i++) {
     yield { type: 'compare', i, j: i, log: `Compare arr[${i}]=${arr[i]} with target`, vars: { index: i, val: arr[i] } };
@@ -392,9 +392,10 @@ addAlgo('linearsearch', 'Linear Search', 'search', 'O(n)', 'O(1)', 'array', func
 });
 
 addAlgo('binarysearch', 'Binary Search', 'search', 'O(log n)', 'O(1)', 'array', function* binarySearch(arr) {
-  const target = 55;
+  arr.sort((a, b) => a - b);
+  const target = arr[Math.floor(arr.length / 2)]; // guaranteed present
   let low = 0, high = arr.length - 1;
-  yield { type: 'active', index: 0, log: `Requires sorted array. Search for ${target}` };
+  yield { type: 'active', index: 0, log: `Sorted input. Search for ${target}`, vars: { target } };
   while (low <= high) {
     let mid = Math.floor((low + high) / 2);
     yield { type: 'compare', i: low, j: high, log: `Active search space: bounds [${low}, ${high}]`, vars: { low, high, mid, midVal: arr[mid] } };
@@ -722,6 +723,83 @@ addAlgo('bfs', 'Breadth-First Search (BFS)', 'graph', 'O(V+E)', 'O(V)', 'graph',
   }
   yield { type: 'done' };
 });
+
+// Real DFS — recursive traversal over the demo graph (used by the slug registry).
+function* graphDFS() {
+  const nodes = [
+    { id: 0, label: 'A', x: 100, y: 150 },
+    { id: 1, label: 'B', x: 220, y: 60 },
+    { id: 2, label: 'C', x: 220, y: 240 },
+    { id: 3, label: 'D', x: 380, y: 60 },
+    { id: 4, label: 'E', x: 380, y: 240 },
+    { id: 5, label: 'F', x: 500, y: 150 },
+  ];
+  const edges = [
+    { u: 0, v: 1 }, { u: 0, v: 2 }, { u: 1, v: 3 }, { u: 2, v: 4 }, { u: 3, v: 5 }, { u: 4, v: 5 },
+  ];
+  yield { type: 'initGraph', nodes, edges, log: 'Initialize adjacency list representation' };
+
+  const adj = (id) => edges.filter((e) => e.u === id || e.v === id).map((e) => (e.u === id ? e.v : e.u)).sort((a, b) => a - b);
+  const visited = new Set();
+
+  function* visit(curr) {
+    visited.add(curr);
+    yield { type: 'activeNode', node: curr, log: `Visit vertex ${nodes[curr].label}`, vars: { visited: [...visited].map((x) => nodes[x].label).join(',') } };
+    for (const nb of adj(curr)) {
+      if (!visited.has(nb)) {
+        yield { type: 'traverseEdge', u: curr, v: nb, log: `Descend edge ${nodes[curr].label} → ${nodes[nb].label}` };
+        yield* visit(nb);
+      }
+    }
+    yield { type: 'visitedNode', node: curr, log: `Backtrack from ${nodes[curr].label}` };
+  }
+  yield* visit(0);
+  yield { type: 'done', log: 'DFS traversal complete' };
+}
+
+// Real Dijkstra — finalizes nearest unvisited vertex, relaxing edges, over a weighted graph.
+function* graphDijkstra() {
+  const nodes = [
+    { id: 0, label: 'A', x: 100, y: 150 },
+    { id: 1, label: 'B', x: 240, y: 60 },
+    { id: 2, label: 'C', x: 240, y: 240 },
+    { id: 3, label: 'D', x: 400, y: 60 },
+    { id: 4, label: 'E', x: 400, y: 240 },
+    { id: 5, label: 'F', x: 540, y: 150 },
+  ];
+  const edges = [
+    { u: 0, v: 1, w: 4 }, { u: 0, v: 2, w: 2 }, { u: 2, v: 1, w: 1 },
+    { u: 1, v: 3, w: 5 }, { u: 2, v: 4, w: 8 }, { u: 3, v: 5, w: 3 }, { u: 4, v: 5, w: 6 },
+  ];
+  yield { type: 'initGraph', nodes, edges, log: 'Initialize weighted graph' };
+
+  const n = nodes.length;
+  const dist = Array(n).fill(Infinity);
+  const done = new Set();
+  dist[0] = 0;
+  const show = () => dist.map((d) => (d === Infinity ? '∞' : d)).join(',');
+  yield { type: 'activeNode', node: 0, log: 'Source A distance = 0', vars: { dist: show() } };
+
+  for (let iter = 0; iter < n; iter++) {
+    let u = -1;
+    for (let i = 0; i < n; i++) if (!done.has(i) && (u === -1 || dist[i] < dist[u])) u = i;
+    if (u === -1 || dist[u] === Infinity) break;
+    done.add(u);
+    yield { type: 'visitedNode', node: u, log: `Finalize ${nodes[u].label} (dist ${dist[u]})`, vars: { current: nodes[u].label, dist: show() } };
+
+    for (const e of edges) {
+      let v = null;
+      if (e.u === u) v = e.v; else if (e.v === u) v = e.u; else continue;
+      if (done.has(v)) continue;
+      yield { type: 'traverseEdge', u, v, log: `Relax ${nodes[u].label} → ${nodes[v].label} (w=${e.w})` };
+      if (dist[u] + e.w < dist[v]) {
+        dist[v] = dist[u] + e.w;
+        yield { type: 'activeNode', node: v, log: `Update ${nodes[v].label} dist = ${dist[v]}`, vars: { node: nodes[v].label, dist: show() } };
+      }
+    }
+  }
+  yield { type: 'done', log: 'Shortest distances finalized' };
+}
 
 const STUB_GRAPHS = [
   { id: 'dfs', name: 'Depth-First Search (DFS)', cat: 'graph', complexity: 'O(V+E)', space: 'O(V)' },
@@ -1068,3 +1146,27 @@ addAlgo('customsort', 'Custom Sandboxed Sorter', 'custom', 'O(?)', 'O(?)', 'arra
   }
   yield { type: 'done', log: 'Custom execution algorithm concluded!' };
 });
+
+// ═══════════════════════════════════════════════════════════
+//  SLUG REGISTRY — joins DB slugs to client-side generators.
+//  app.js looks generators up by the DB `slug`; the DB owns the
+//  list/metadata, the browser owns the animation.
+// ═══════════════════════════════════════════════════════════
+const ALGO_REGISTRY = {
+  'bubble-sort':           ALGO_DATABASE['bubble'].generator,
+  'selection-sort':        ALGO_DATABASE['selection'].generator,
+  'insertion-sort':        ALGO_DATABASE['insertion'].generator,
+  'merge-sort':            ALGO_DATABASE['merge'].generator,
+  'quick-sort':            ALGO_DATABASE['quick'].generator,
+  'linear-search':         ALGO_DATABASE['linearsearch'].generator,
+  'binary-search':         ALGO_DATABASE['binarysearch'].generator,
+  'breadth-first-search':  ALGO_DATABASE['bfs'].generator,
+  'depth-first-search':    graphDFS,
+  'dijkstra':              graphDijkstra,
+  'a-star':                ALGO_DATABASE['astar'].generator,
+  'knapsack-01':           ALGO_DATABASE['knapsack'].generator,
+  'kmp-search':            ALGO_DATABASE['kmp'].generator,
+  'sieve-of-eratosthenes': ALGO_DATABASE['sieve'].generator,
+  'tower-of-hanoi':        ALGO_DATABASE['hanoi'].generator,
+};
+window.ALGO_REGISTRY = ALGO_REGISTRY;

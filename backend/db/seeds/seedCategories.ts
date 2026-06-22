@@ -7,7 +7,8 @@ const CATEGORIES = [
   { slug: 'grid', name: 'Grid / Pathfinding', description: 'Pathfinding on 2D grids', order: 4 },
   { slug: 'dynamic-programming', name: 'Dynamic Programming', description: 'Overlapping subproblems', order: 5 },
   { slug: 'math', name: 'Math', description: 'Number theory and mathematics', order: 6 },
-  { slug: 'lists', name: 'Lists', description: 'Linked lists and sequences', order: 7 },
+  { slug: 'string', name: 'Strings', description: 'Pattern matching on text', order: 7 },
+  { slug: 'lists', name: 'Lists', description: 'Linked lists and sequences', order: 8 },
 ];
 
 export async function seedCategories(conn: Connection): Promise<void> {
