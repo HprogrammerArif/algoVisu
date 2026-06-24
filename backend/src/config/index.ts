@@ -28,7 +28,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   return {
     env: env.NODE_ENV || 'development',
     port: Number(env.PORT) || 3000,
-    corsOrigin: env.CORS_ORIGIN || 'http://127.0.0.1:5500',
+    corsOrigin: env.CORS_ORIGIN || 'http://localhost:5500,http://127.0.0.1:5500',
     db: {
       user: env.DB_USER as string,
       password: env.DB_PASSWORD as string,

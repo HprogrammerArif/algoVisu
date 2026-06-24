@@ -6,6 +6,7 @@ import { seedRoles } from './seeds/seedRoles';
 import { seedAdmin } from './seeds/seedAdmin';
 import { seedCategories } from './seeds/seedCategories';
 import { seedCatalog } from './seeds/seedCatalog';
+import { seedExplanations } from './seeds/seedExplanations';
 
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 
@@ -13,6 +14,7 @@ const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 const TABLES_REVERSE = [
   'progress',
   'bookmarks',
+  'algorithm_explanations',
   'code_snippets',
   'time_complexities',
   'algorithms',
@@ -62,6 +64,7 @@ async function seed(conn: Connection): Promise<void> {
   await seedAdmin(conn);
   await seedCategories(conn);
   await seedCatalog(conn);
+  await seedExplanations(conn);
 }
 
 async function main(): Promise<void> {

@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { makeApiRouter } from './interfaces/http/routes';
 import { notFoundHandler, errorHandler } from './interfaces/http/middlewares/errorHandler';
+import { buildCorsOrigin } from './interfaces/http/corsOptions';
 import type { AppDependencies } from './types/dependencies';
 
 // createApp is the application assembly. Dependencies (config, repositories,
@@ -11,7 +12,7 @@ import type { AppDependencies } from './types/dependencies';
 export function createApp(deps: AppDependencies): Express {
   const app = express();
 
-  app.use(cors({ origin: deps.config.corsOrigin }));
+  app.use(cors({ origin: buildCorsOrigin(deps.config.corsOrigin, deps.config.env) }));
   app.use(express.json());
   if (deps.config.env !== 'test') app.use(morgan('dev'));
 

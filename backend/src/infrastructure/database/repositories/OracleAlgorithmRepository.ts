@@ -260,12 +260,19 @@ export class OracleAlgorithmRepository implements IAlgorithmRepository {
       { id: row.ALGORITHM_ID },
     );
 
+    const explRes = await conn.execute<{ HEADING: string; BODY: string }>(
+      `SELECT heading, body FROM algorithm_explanations
+        WHERE algorithm_id = :id ORDER BY display_order`,
+      { id: row.ALGORITHM_ID },
+    );
+
     return {
       ...mapSummary(row),
       description: row.DESCRIPTION,
       spaceComplexity: row.SPACE_COMPLEXITY,
       timeComplexities: time,
       codeSnippets: (snipRes.rows ?? []).map((s) => ({ language: s.LANGUAGE, code: s.CODE })),
+      explanation: (explRes.rows ?? []).map((e) => ({ heading: e.HEADING, body: e.BODY })),
     };
   }
 }

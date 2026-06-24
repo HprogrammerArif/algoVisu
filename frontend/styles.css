@@ -105,6 +105,42 @@ body::after {
 .snippet-tab { font-family: var(--mono); font-size: 10px; cursor: pointer; background: transparent; color: var(--text-dim); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; }
 .snippet-tab.active { color: var(--neon-cyan); border-color: var(--neon-cyan); }
 
+/* Explain button + in-depth explanation modal */
+.explain-btn {
+  font-family: var(--mono); font-size: 10px; cursor: pointer; margin-left: auto;
+  background: transparent; color: var(--neon-gold); border: 1px solid var(--neon-gold);
+  border-radius: 4px; padding: 3px 9px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.explain-btn:hover { box-shadow: 0 0 8px rgba(255,183,0,var(--glow-strength)); }
+
+.explain-overlay {
+  position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.6); padding: 24px;
+}
+.explain-overlay[hidden] { display: none; }
+.explain-dialog {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px;
+  width: min(680px, 100%); max-height: 84vh; display: flex; flex-direction: column;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+}
+.explain-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+}
+.explain-header h3 { font-family: var(--mono); font-size: 16px; color: var(--neon-cyan); margin: 0; }
+.explain-close {
+  cursor: pointer; background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  border-radius: 4px; width: 28px; height: 28px; font-size: 13px;
+}
+.explain-close:hover { color: var(--neon-pink); border-color: var(--neon-pink); }
+.explain-content { padding: 16px 18px; overflow-y: auto; }
+.explain-section { margin-bottom: 16px; }
+.explain-section h4 {
+  font-family: var(--mono); font-size: 12px; color: var(--neon-gold);
+  text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;
+}
+.explain-section p { font-size: 13px; line-height: 1.6; color: var(--text); margin: 0; }
+
 .sys-status {
   display: flex; align-items: center; gap: 16px; font-family: var(--mono); font-size: 11px; color: var(--text-dim);
 }

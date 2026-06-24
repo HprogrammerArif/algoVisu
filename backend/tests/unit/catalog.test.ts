@@ -40,6 +40,8 @@ describe('getAlgorithmDetail', () => {
     expect(detail.name).toBe('Binary Search');
     expect(detail.timeComplexities.average).toBe('O(log n)');
     expect(detail.codeSnippets.length).toBeGreaterThan(0);
+    expect(detail.explanation.length).toBeGreaterThan(0);
+    expect(detail.explanation[0].heading.length).toBeGreaterThan(0);
   });
 
   it('throws 404 for an unknown slug', async () => {

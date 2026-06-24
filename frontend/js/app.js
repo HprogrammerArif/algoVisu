@@ -840,6 +840,37 @@ function renderDetailPanel(detail) {
   currentSnippets = {};
   (detail.codeSnippets || []).forEach((s) => { currentSnippets[s.language] = s.code; });
   setSnippetLang(currentSnippets['javascript'] ? 'javascript' : 'pseudocode');
+
+  // Show the Explain button only when there is explanation content.
+  const explainBtn = document.getElementById('btn-explain');
+  if (explainBtn) explainBtn.hidden = !(detail.explanation && detail.explanation.length);
+}
+
+// Open the in-depth explanation modal for the current algorithm.
+function openExplanation() {
+  if (!currentDetail || !currentDetail.explanation || !currentDetail.explanation.length) return;
+  document.getElementById('explain-title').textContent = currentDetail.name;
+  const body = document.getElementById('explain-body');
+  body.innerHTML = '';
+  currentDetail.explanation.forEach((sec) => {
+    const section = document.createElement('section');
+    section.className = 'explain-section';
+    const h = document.createElement('h4');
+    h.textContent = sec.heading;
+    const p = document.createElement('p');
+    p.textContent = sec.body;
+    section.appendChild(h);
+    section.appendChild(p);
+    body.appendChild(section);
+  });
+  const modal = document.getElementById('explain-modal');
+  modal.hidden = false;
+  body.scrollTop = 0;
+}
+
+function closeExplanation() {
+  const modal = document.getElementById('explain-modal');
+  if (modal) modal.hidden = true;
 }
 
 function setSnippetLang(lang) {
@@ -852,6 +883,8 @@ function setSnippetLang(lang) {
 function showComingSoon(name) {
   steps = [];
   stepIdx = 0;
+  const explainBtn = document.getElementById('btn-explain');
+  if (explainBtn) explainBtn.hidden = true;
   const channels = ['array', 'grid', 'graph', 'matrix', 'string', 'math'];
   channels.forEach((ch) => document.getElementById('viz-' + ch).classList.remove('active'));
   const host = document.getElementById('viz-array');
@@ -947,5 +980,15 @@ function setupEventListeners() {
   // Code snippet language tabs (JS / pseudocode)
   document.querySelectorAll('.snippet-tab').forEach((b) => {
     b.addEventListener('click', () => setSnippetLang(b.dataset.lang));
+  });
+
+  // Explanation modal: open, close (X), backdrop click, Esc
+  document.getElementById('btn-explain').addEventListener('click', openExplanation);
+  document.getElementById('explain-close').addEventListener('click', closeExplanation);
+  document.getElementById('explain-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'explain-modal') closeExplanation();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeExplanation();
   });
 }

@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuantumViz // Reversible Algorithmic Sandbox IDE</title>
+
+  <!-- Inline SVG favicon (avoids a /favicon.ico 404; no binary asset, no build step) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23030712'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' font-weight='bold' fill='%2300f0ff' text-anchor='middle'%3EQ%3C/text%3E%3C/svg%3E">
+
   
   <!-- Font assets -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,6 +84,7 @@
         <div class="detail-head">
           <span id="detail-name" class="detail-name">—</span>
           <span id="detail-difficulty" class="detail-badge"></span>
+          <button id="btn-explain" class="explain-btn" type="button" hidden>📖 Explain</button>
         </div>
         <p id="detail-summary" class="detail-summary"></p>
         <div id="detail-complexity" class="detail-complexity"></div>
@@ -208,6 +213,19 @@
     <div id="statusbar-msg">QuantumViz Sandbox IDE Engine initialized successfully.</div>
     <div style="font-family: var(--mono); font-size:9px;">CRT OVERLAY : ACTIVE | CONTEXT: HIGH_VOLTAGE</div>
   </footer>
+
+  <!-- EXPLANATION MODAL (in-depth discussion of the selected algorithm) -->
+  <div id="explain-modal" class="explain-overlay" hidden>
+    <div class="explain-dialog" role="dialog" aria-modal="true" aria-labelledby="explain-title">
+      <div class="explain-header">
+        <h3 id="explain-title">Algorithm</h3>
+        <button id="explain-close" class="explain-close" type="button" aria-label="Close explanation">✕</button>
+      </div>
+      <div id="explain-body" class="explain-content">
+        <!-- Sections rendered dynamically -->
+      </div>
+    </div>
+  </div>
 
   <!-- API CLIENT (config → thin fetch client → catalog API) -->
   <script src="config.js"></script>

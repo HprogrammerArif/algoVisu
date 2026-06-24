@@ -121,11 +121,19 @@ Public. Full detail used to render the panels and drive the visualizer.
   "timeComplexities": { "best": "O(1)", "average": "O(log n)", "worst": "O(log n)" },
   "codeSnippets": [
     { "language": "javascript", "code": "function binarySearch(a, t){ … }" },
-    { "language": "python", "code": "def binary_search(a, t): …" }
+    { "language": "pseudocode", "code": "lo=0; hi=n-1; while lo<=hi …" }
+  ],
+  "explanation": [
+    { "heading": "What problem it solves", "body": "Binary search finds a target in a sorted collection …" },
+    { "heading": "How it works", "body": "It tracks low/high bounds and compares the middle element …" },
+    { "heading": "Why & when to use it", "body": "Use it whenever data is sorted and searched repeatedly …" },
+    { "heading": "Complexity intuition", "body": "Halving the range each step gives O(log n) …" },
+    { "heading": "Real-world uses", "body": "Database indexes, dictionary lookups, git bisect …" }
   ]
 } }
 ```
-Errors: `404 ALGORITHM_NOT_FOUND`.
+`explanation` is an ordered list of the in-depth sections shown in the UI's **Explain** modal
+(empty `[]` for an algorithm with no authored explanation). Errors: `404 ALGORITHM_NOT_FOUND`.
 
 ### `POST /api/v1/algorithms` 👑
 Create an algorithm with its complexities and snippets (one transaction).
