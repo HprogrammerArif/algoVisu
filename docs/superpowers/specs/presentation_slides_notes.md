@@ -6,132 +6,204 @@ This document contains a structured slide-by-slide guide and comprehensive proje
 
 ## 📊 Presentation Slides Outline
 
-### Slide 1: Project Overview & Objectives
+### Slide 1: Title & Project Overview
 *   **Slide Title:** QuantumViz: Interactive & Reversible Algorithm Visualizer
 *   **Bullet Points:**
-    *   **Objective:** Provide an interactive, full-stack learning platform where students and educators can *see* and trace algorithms step-by-step.
-    *   **Standout Feature:** A client-side "time-travel debugger" allowing exact forward *and* backward step playback.
-    *   **Architectural Seam:** Cleanly splits *what to teach* (metadata and text in Oracle DB) from *how to animate* (local state-generators in the browser).
+    *   **Project Name:** QuantumViz (Full-Stack Algorithm Visualization Platform).
+    *   **Department:** Computer Science & Engineering (Course Code: CSE 3108-0613).
+    *   **Presenter:** Arif Hossen (ID: 231010687, Batch: 13th, Solo Project).
+    *   **Requested Supervisor:** Reduanul Bari Shovon (Sir).
 *   **Speaker Notes:**
-    > "Good morning, professors. Today I am presenting QuantumViz, a full-stack algorithm visualization platform designed for modern computer science education. Our key innovation is 'the seam'—we separate content management from visualization logic. The database stores descriptions, complexity metrics, and code, while the browser runs a custom engine to generate interactive, reversible animations that let students step forward and backward through code execution."
+    > "Good morning, professors. Today I am presenting QuantumViz, a full-stack algorithm visualization platform designed for modern computer science education. It bridges the gap between text-based learning and visual tracing by allowing students to see exactly how algorithms operate."
 
 ---
 
-### Slide 2: Academic & Architectural Constraints
-*   **Slide Title:** Strict Academic Constraints
+### Slide 2: Motivation (Why QuantumViz?)
+*   **Slide Title:** Motivation & Problem Statement
 *   **Bullet Points:**
-    *   **Frontend Constraints:** Pure raw code — no React, no Next.js, no Angular, no Vue, no Tailwind CSS, and no NPM frontend packages.
-    *   **Frontend Stack:** Vanilla HTML5, custom CSS (native dark/light variables design system), and raw ES6 JavaScript Modules.
-    *   **Backend Stack:** Node.js, Express.js using strict TypeScript.
-    *   **Database Engine:** Oracle Database XE 21c using thin mode connections and raw SQL (no ORM allowed).
+    *   **Mental Modeling Gap:** Standard textbooks and static code snippets are difficult for students to visualize in dynamic execution paths.
+    *   **Limitations of Existing Tools:** Existing visualizers are often simple single-page tools that are non-reversible, lack explanations, or use heavy, bloated frontend frameworks.
+    *   **Zero-Framework Learning:** Demonstrating that clean, high-performance web applications can be built within strict academic constraints.
 *   **Speaker Notes:**
-    > "To meet strict academic guidelines, QuantumViz is built entirely without frontend frameworks or pre-compilers. The frontend is served as static HTML, CSS variables, and vanilla JS Modules communicating with the backend via fetch. The backend is written in strict TypeScript with Express, and all database interactions are done using raw SQL query execution against an Oracle XE instance."
+    > "The main motivation behind this project is to address the mental gap students face when learning complex sorting, searching, or graph traversal algorithms. Traditional resources show static states. Furthermore, existing visualizers are either too basic, or rely on heavy frameworks that hide core web principles. QuantumViz aims to show that a highly interactive, reversible visualizer can be built natively using vanilla web technologies."
 
 ---
 
-### Slide 3: Oracle Database & Normalized Schema (3NF)
-*   **Slide Title:** Database Design & 3NF Normalization
+### Slide 3: Project Goals
+*   **Slide Title:** Core Project Goals
 *   **Bullet Points:**
-    *   **Normalization:** Normalized to Third Normal Form (3NF) to eliminate update, insert, and delete anomalies.
-    *   **Key Entities:** `roles`, `users`, `categories`, `algorithms`, `time_complexities`, `code_snippets`, `algorithm_explanations`, `bookmarks`, `progress`.
-    *   **Normalized Relationships:** 
-        *   Time complexity values best/avg/worst are split into `time_complexities`.
-        *   Code snippets are stored in a dedicated `code_snippets` child table, allowing multiple language codes per algorithm without changing schema.
+    *   **Interactive Controls:** Implement bidirectional (time-travel) playback to review step-by-step executions forward and backward.
+    *   **Separation of Concerns:** Separate teaching content (Oracle Database) from visual animation computations (Client-Side).
+    *   **Robust Framework:** Enforce Enterprise Clean Architecture on the backend REST API.
+    *   **User Tracking:** Provide secure user authentication, bookmarking, and progress indicators.
 *   **Speaker Notes:**
-    > "Our database schema consists of nine tables, fully normalized to Third Normal Form. To avoid redundancy, algorithm explanations and code snippets are split into child tables. This means we can support multiple programming language tabs, and edit in-depth section details, without duplicate strings. We enforce strict foreign key constraints with cascade deletes on user-specific tables, and use check constraints to enforce enums like difficulty and visualizer type."
+    > "Our project goals are twofold. Pedagogically, we want to give students complete control over algorithm flows—allowing them to step forward and backward, read detailed explanations, and review pseudocode. Architecturally, we aim to design a loosely coupled full-stack system with a strict separation of concerns, a normalized database schema, and high-performance animation renderers."
 
 ---
 
-### Slide 4: Backend Separation of Concerns (Clean Architecture)
-*   **Slide Title:** Loose Coupling with Clean Architecture
+### Slide 4: Functional Requirements
+*   **Slide Title:** Functional Requirements (FR)
 *   **Bullet Points:**
-    *   **Domain Layer:** Holds pure business entities and repository interface definitions; zero external imports or I/O dependencies.
-    *   **Application Layer:** Focuses on use-cases (e.g. `getAlgorithmDetail`, `upsertProgress`, `addBookmark`).
-    *   **Infrastructure Layer:** Implements repository interfaces using raw Oracle SQL bind variables.
-    *   **Interfaces Layer:** Express routes, controllers, input validation middleware, and JWT authentication checks.
+    *   **FR-1: Catalog Browsing:** Filter and search 15 core algorithms across 8 categories.
+    *   **FR-2: Reversible Visualizer:** Play, pause, adjust speed, and step back/forward through execution frames.
+    *   **FR-3: Dynamic "Explain" Modal:** Fetch and render 5 detailed educational sections per algorithm.
+    *   **FR-4: Code Tab Panels:** Display pseudocode and JavaScript snippets.
+    *   **FR-5: Personalization:** Secure user register/login, bookmark tracking, and progress marking.
+    *   **FR-6: Catalog Administration:** Role-guarded CRUD endpoints for managing algorithms.
 *   **Speaker Notes:**
-    > "The backend follows Clean Architecture principles, ensuring that code dependencies only point inward. Our core domain defines entities and repository interfaces, completely unaware of Express or Oracle. The application layer handles use-cases and coordinates business logic. The infrastructure layer is where Oracle DB connections and JWT operations are isolated. This isolation allowed us to run our entire backend unit test suite using fake repositories, without needing an active database connection."
+    > "QuantumViz satisfies several core functional requirements. Students can browse the algorithm catalog, execute visualizations, view code snippets in different languages, and read structured explanations. Registered users can also bookmark items and save their learning progress. Finally, administrators are provided with endpoint privileges to create or edit algorithms."
 
 ---
 
-### Slide 5: Frontend Single Page Application (SPA) Engine
-*   **Slide Title:** Custom Routing & Lazy Loading
+### Slide 5: Non-Functional Requirements
+*   **Slide Title:** Non-Functional Requirements (NFR)
 *   **Bullet Points:**
-    *   **Vanilla Router:** Custom routing matching URL hash changes (`window.addEventListener('hashchange')`) against regex patterns.
-    *   **Dynamic Module Importing:** Pages are lazy-loaded dynamically using native ES `import()` to minimize initial bandwidth.
-    *   **Deep-Linking:** Supports direct navigation to specific algorithm pages (e.g., `index.html#binary-search`) by checking location hashes on startup.
+    *   **NFR-1: Performance:** Sub-millisecond local canvas/SVG redraws to prevent browser animation lagging.
+    *   **NFR-2: Security:** Encrypted password storage using Bcrypt, stateless API session validation with JWT, and bind variable injection guards.
+    *   **NFR-3: Scalability:** decoupled stateless backend and connection pool reuse (`node-oracledb`).
+    *   **NFR-4: Data Integrity:** Strict 3NF database design and multi-table database transaction rollbacks.
 *   **Speaker Notes:**
-    > "Without React Router, I built a custom hash-based router from scratch. It intercepts hash changes, matches them with registered routes, and parses route arguments. Furthermore, page controller modules are lazy-loaded on-demand. When the user navigates, the app fetches only the necessary JavaScript chunk. The router also handles query variables and handles deep-linking, so sharing a URL takes users directly to that specific algorithm visualization."
+    > "Our non-functional requirements focus heavily on security, speed, and reliability. The visualizer calculations execute client-side to guarantee instant rendering speeds. User credentials are encrypted with bcrypt, APIs are secured with stateless JWT headers, and SQL safety is enforced with bind variables. The schema design also avoids update anomalies through strict 3NF normalization."
 
 ---
 
-### Slide 6: Reversible Playback Engine (Time-Travel)
+### Slide 6: Big Picture & System Architecture
+*   **Slide Title:** High-Level System Architecture
+*   **Diagram Outline (Three-Tier Application):**
+    ```
+    ┌──────────────────────────┐     REST API (JSON)      ┌──────────────────────────┐
+    │  Static Frontend (SPA)   │ ◄──────────────────────► │  TypeScript Node Server  │
+    │  Vanilla HTML / CSS / JS │   JWT Bearer Auth Headers│  (Clean Architecture API)│
+    └──────────────────────────┘                          └────────────┬─────────────┘
+                                                                       │ node-oracledb
+                                                                       ▼ (Thin Mode)
+                                                          ┌──────────────────────────┐
+                                                          │ Oracle Database XE 21c   │
+                                                          │ (Normalized 3NF Tables)  │
+                                                          └──────────────────────────┘
+    ```
+*   **Speaker Notes:**
+    > "This is the big picture of QuantumViz. It is a three-tier architecture. The frontend is a static web app that runs entirely in the browser, making requests to our Node.js and TypeScript REST API. The backend processes the queries and accesses the Oracle Express database using node-oracledb. This clean separation makes hosting cheap and optimizes execution load."
+
+---
+
+### Slide 7: Technology Stack & Justification
+*   **Slide Title:** Technology Stack & Justifications
+*   **Bullet Points:**
+    *   **Frontend:** HTML5, Vanilla JS (ES Modules), Custom CSS. *Justification: No compilation or bundle overhead, direct access to browser API, satisfies zero-framework rules.*
+    *   **Backend:** Node.js, Express, strict TypeScript. *Justification: Highly scalable asynchronous runtime, compile-time type safety for repository contracts.*
+    *   **Database:** Oracle XE 21c via `node-oracledb`. *Justification: Enterprise-grade relational safety, ACID compatibility, robust subquery joining.*
+*   **Speaker Notes:**
+    > "For our technology choices: frontend modules use native ES import declarations so we can skip complicated build scripts. On the backend, TypeScript enforces interface declarations to keep our architecture strict. The database is Oracle Database Express Edition, which provides robust constraints and transaction rollbacks for our catalog updates."
+
+---
+
+### Slide 8: Data Flow Diagram (DFD) & Request Lifecycle
+*   **Slide Title:** Data Flow & Request Journey
+*   **Data Flow Diagram:**
+    ```
+    Client (Browser) ──[GET /algorithms/:slug + JWT]──► [Express App Router]
+                                                              │
+      [JSON Response] ◄──[Controller Entity Mapping]◄── [Use-Case Service]
+                                                              │
+                                                   [Oracle Repository (SQL)]
+                                                              │
+                                                              ▼
+                                                   [Oracle XE Database]
+    ```
+*   **Speaker Notes:**
+    > "When a client requests a specific algorithm, the request travels inward. Express middleware parses the headers, validates inputs, and verifies tokens. The Controller maps it to a Use-Case, which acts as our pure business service layer. The Use-Case queries the database via our repository contract, receives database rows, parses them into Domain Entities, and returns them as clean JSON payloads."
+
+---
+
+### Slide 9: ER Diagram & 3NF Schema Normalization
+*   **Slide Title:** ERD & Database Normalization (3NF)
+*   **ERD Cardinalities:**
+    *   `roles` (1 : M) `users`
+    *   `categories` (1 : M) `algorithms`
+    *   `algorithms` (1 : M) `time_complexities` (Best, Avg, Worst cases)
+    *   `algorithms` (1 : M) `code_snippets` (Multiple languages)
+    *   `algorithms` (1 : M) `algorithm_explanations` (Structured slides)
+    *   `users` (M : N) `algorithms` via `bookmarks` and `progress`
+*   **Speaker Notes:**
+    > "This is our database schema. By normalizing to 3NF, we split best/average/worst complexities and code implementations into their own tables. This structure guarantees that adding a language snippet or editing an explanation doesn't result in duplicate fields or null cells. The bookmarks and progress tables act as associative link tables mapping users to algorithms."
+
+---
+
+### Slide 10: Reversible Playback Engine (Time-Travel)
 *   **Slide Title:** Reversible State-Snapshot Playback
 *   **Bullet Points:**
-    *   **Generator Pre-execution:** The visualizer runs the algorithm's ES6 Generator (`yield`) to completion up-front.
-    *   **Snapshot State Array:** Captures the full snapshot of local variables and index pointers at every step in a state array.
-    *   **Bidirectional Scrubber:** Moving forward or backward is as cheap as changing the current index pointer in the state array.
-    *   **Interactive Playback:** Full support for play, pause, reset, step-forward, step-backward, and speed adjustments.
+    *   **The Seam:** Oracle stores metadata and texts; the client generates and computes execution states.
+    *   **Generator Pre-execution:** Pre-runs the algorithm generator function (`yield`) to capture all step indexes up-front.
+    *   **Bi-directional Navigation:** Store states in a `steps[]` array. Forward or backward movement is a simple index decrement or increment.
 *   **Speaker Notes:**
-    > "Our standout feature is the reversible playback engine. Rather than attempting to write complex reverse-operations for every sorting swap or graph traversal, the frontend pre-runs the algorithm generator function. It yields state changes, which are captured as a series of snapshots in an array. Navigating backward is as simple as indexing backwards in this array, giving users a true 'time-travel' debugger experience that makes learning intuitive."
+    > "Our time-travel engine works by pre-running the algorithm's generator function. Each comparison or swap yields a state change. The app captures a snapshot of these values in a local array. When the student steps backward, we simply read the previous index from this array and redraw the visualization. This avoids having to write complex custom 'undo' code for each sorting algorithm."
 
 ---
 
-### Slide 7: The Six Specialized Visualizers
-*   **Slide Title:** Multi-Visualizer Drawing Engines
+### Slide 11: The Six Specialized Visualizers
+*   **Slide Title:** Custom Client-Side Visualizers
 *   **Bullet Points:**
-    *   **Array Visualizer:** Renders sorting and searching elements as dynamic bars.
-    *   **Grid Visualizer:** An interactive 2D grid for pathfinding (A*) with paintable walls and draggable start/end points.
-    *   **Graph Visualizer:** SVG-based interactive force-directed layout for BFS, DFS, and Dijkstra.
-    *   **Matrix, String, & Math Engines:** Dedicated visualizer drawers for Dynamic Programming tables, sliding string matchers (KMP), and Tower of Hanoi/Sieve tables.
+    *   **Array Visualizer:** Renders bars and indicators for sorting and linear/binary searching.
+    *   **Grid Visualizer:** Dynamic grid cell coloring for A* pathfinding with paintable blockages.
+    *   **Graph Visualizer:** SVGweighted nodes and edges tracking BFS, DFS, and Dijkstra.
+    *   **Matrix, String, & Math Engines:** Multi-dimensional dynamic program visualizers, string sliding widgets, and Hanoi pegs.
 *   **Speaker Notes:**
-    > "Depending on the algorithm's category, the application routes drawing instructions to one of six custom drawing engines. For array sorting, it displays bar charts. For grid search, it draws a cell grid where users can draw custom blockages. For graphs, it renders weighted node connections. The algorithm metadata in the database specifies which visualizer layout to load, meaning new algorithms can easily reuse these engines."
+    > "We designed six distinct visualization engines to cover different categories. The system is extremely extensible. If a new algorithm is added to the database that operates on arrays or grids, we don't need to write new visualizer code—we simply associate the slug with one of these pre-built engines in our registry."
 
 ---
 
-### Slide 8: Explain Panel & Dynamic Content
-*   **Slide Title:** DB-Driven Pedagogical Content
+### Slide 12: Authentication, Security & Route Guards
+*   **Slide Title:** Security Architecture
 *   **Bullet Points:**
-    *   **Dynamic Data Fetching:** On selection, `GET /api/v1/algorithms/:slug` pulls detailed resources.
-    *   **Code Tab Panel:** Displays clean side-by-side tabs for pseudocode and execution-ready JavaScript.
-    *   **The "Explain" Modal:** Opens a detailed five-section modal containing:
-        1. *What problem it solves* | 2. *How it works* | 3. *Why & when to use* | 4. *Complexity intuition* | 5. *Real-world uses*.
+    *   **JWT Authentication:** Stateless verification with expiration validation.
+    *   **Password Hashing:** Strict Bcrypt encryption hashes saved in database.
+    *   **Route Guards:** Admin endpoints protected with role checks (`authorize('admin')`).
+    *   **SQL Injection Guard:** Bind variables prevent query structure alteration.
 *   **Speaker Notes:**
-    > "To maximize educational value, QuantumViz includes an in-depth 'Explain' panel. We pull this data dynamically from the database. It displays complexity metrics, lets users toggle between pseudocode and runnable code snippets, and renders a structured modal explaining the algorithm's logic, its complexity intuition, and real-world practical applications. All this text is stored in the database, allowing content administrators to update learning material instantly."
+    > "Authentication and permissions are critical. We use stateless JWT tokens stored in the browser, verified by Express middleware. Write endpoints for the algorithm catalog are role-guarded and will immediately return a 403 Forbidden error for non-admin accounts. To block SQL Injection, we use query parameters with bind variables rather than constructing SQL strings directly."
 
 ---
 
-### Slide 9: Security, Auth, & Data Protection
-*   **Slide Title:** Authentication, Roles, & SQL Safety
-*   **Bullet Points:**
-    *   **Password Security:** User passwords are encrypted with bcrypt hashes before being stored in Oracle DB.
-    *   **Stateless Authentication:** JSON Web Tokens (JWT) signed on the backend and saved in client `localStorage`.
-    *   **SQL Injection Defense:** Strict use of Oracle bind variables in all database queries.
-    *   **Role-Based Security:** Admin accounts have write privileges for catalog data, protected via Express route guards.
+### Slide 13: Project Schedule (Gantt Chart representation)
+*   **Slide Title:** Project Schedule & Timeline
+*   **Timeline Breakdown:**
+    *   **Weeks 1-2:** Requirements Gathering, System Modeling, and Oracle DDL Schema Design.
+    *   **Week 3:** Backend Setup, REST Routes, and Clean Architecture Repository Patterns.
+    *   **Week 4:** Oracle XE DB Integration, Migration Runner Script, and Seeding Catalog Datasets.
+    *   **Week 5:** Frontend UI Layout Shell, CSS Variables Design System, and Custom Hash Router.
+    *   **Week 6:** Reversible Playback Engine & 6 Specialized Drawing Canvas/SVG Visualizers.
+    *   **Week 7:** JWT Authentication, Bookmarking and Progress Tracking Integration.
+    *   **Week 8:** Testing (Vitest & Supertest API tests), QA Verification, and Final Documentation.
 *   **Speaker Notes:**
-    > "Security is a core consideration of our full-stack tier. User passwords are encrypted using bcrypt. Session management is stateless and handles authorization via JWT. On the database layer, we strictly prevent SQL injection by using bind variables for every database lookup, insert, and update statement. We also implement Express middleware to check token payloads and reject unauthorized requests with a standard HTTP 403 response."
+    > "The development schedule followed a structured 8-week timeline. We began with database modeling, followed by backend architecture setup and seeding. Weeks 5 and 6 were dedicated to frontend layout development, router implementation, and custom drawing canvas visualizers. Finally, we integrated user authentications, bookmarks, progress, and ran our automated unit test suite."
 
 ---
 
-### Slide 10: User Experience: Bookmarks & Progress
-*   **Slide Title:** Personalized Learner Dashboards
+### Slide 14: Cost Analysis
+*   **Slide Title:** Cost Analysis
 *   **Bullet Points:**
-    *   **Bookmarking System:** Saves algorithms to a custom bookmarks table associated with the user account.
-    *   **Progress Tracking:** Tracks which algorithms the student has started, practiced, or completed.
-    *   **Dynamic Profile Catalog:** Loads custom progress indicators, bookmarks, and stats on the user's Account page.
+    *   **Software Licensing:** $0.
+        *   *Frontend:* Vanilla HTML/CSS/JS (Free).
+        *   *Backend:* Node.js and Express (Free, open-source).
+        *   *Database:* Oracle Database Express Edition (XE) (Free Tier).
+        *   *Utilities:* Docker Community Edition, Git, Vitest (Free).
+    *   **Infrastructure Costs:** Run on standard developer workstation. Self-hosting cost matches a single low-tier cloud CPU instance ($5-$10/month).
+    *   **Total Project Acquisition Cost:** $0.
 *   **Speaker Notes:**
-    > "To encourage active learning, users can create accounts to bookmark algorithms they find difficult and log their learning progress. When logged in, the dashboard dynamically shows which algorithms have been marked as 'Completed' or 'In Progress' in the database. This personalizes the learning journey and gives students a structured way to review algorithms they want to study again."
+    > "Our cost analysis proves that QuantumViz is extremely budget-friendly. By using open-source utilities and the free tier of Oracle XE Database, our software licensing costs are exactly zero dollars. The application is designed to be lightweight, meaning it can run on standard student machines, and virtual hosting costs are minimal, making it highly feasible to maintain."
 
 ---
 
-### Slide 11: Summary & Achievements
-*   **Slide Title:** Key Takeaways & Project Strengths
+### Slide 15: Summary of Achievements & Conclusion
+*   **Slide Title:** Summary & Key Takeaways
 *   **Bullet Points:**
-    *   **Optimized Performance:** Reversible client-side visualizers provide sub-millisecond redraw speeds without query overhead.
-    *   **Robust Backend:** Strictly typed REST API structured around Clean Architecture with 61 automated test cases.
-    *   **Academic Model:** Fully complies with zero-framework UI rules while delivering a premium user experience.
+    *   **High Performance:** Client-side visualization handles 60fps animations instantly.
+    *   **Clean and Decoupled:** Express controllers, use-cases, and database queries are isolated.
+    *   **Academic Ready:** Fulfilled zero frontend framework constraints while delivering premium features.
+    *   **Proven Correctness:** All 15 algorithms verified against reference solutions with 61 test cases.
 *   **Speaker Notes:**
-    > "In summary, QuantumViz satisfies all course guidelines while delivering a modern, high-fidelity education tool. We have shown that visual reversibility can be achieved efficiently using state-generators on the frontend, and that a decoupled, unit-tested TypeScript API communicating with an Oracle database can support complex web applications. Thank you. I would be glad to take your questions."
+    > "In conclusion, QuantumViz has successfully delivered an interactive, reversible, full-stack visualization tool that fully adheres to course rules. The system is verified, well-tested, budget-friendly, and offers a premium user experience that helps students master data structures and algorithms. Thank you, professors. I am now open to your questions."
 
 ---
 
