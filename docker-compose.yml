@@ -1,0 +1,107 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# QuantumViz — full stack compose
+#
+# Services:
+#   oracle   → Oracle XE 21c database (gvenzl/oracle-xe)
+#   backend  → Node + Express API  (built from backend/Dockerfile)
+#   frontend → Static site         (served by nginx:alpine)
+#
+# Usage:
+#   First run:   docker compose up --build
+#   Run seeds:   docker compose run --rm backend-setup
+#   Daily start: docker compose up
+#   Stop:        docker compose down
+#   Full reset:  docker compose down -v   (WARNING: deletes DB data)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Oracle XE 21c ───────────────────────────────────────────────────────────
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: quantumviz-oracle
+    restart: unless-stopped
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-SysPassword123}
+      APP_USER: ${DB_USER:-quantumviz}
+      APP_USER_PASSWORD: ${DB_PASSWORD:-AppPassword123}
+    volumes:
+      - oracle_data:/opt/oracle/oradata   # persist DB across restarts
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'SELECT 1 FROM DUAL;' | sqlplus -s ${DB_USER:-quantumviz}/${DB_PASSWORD:-AppPassword123}@localhost/XEPDB1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s   # Oracle takes ~90s on first boot
+
+  # ── Backend API ─────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: quantumviz-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5500}
+      DB_USER: ${DB_USER:-quantumviz}
+      DB_PASSWORD: ${DB_PASSWORD:-AppPassword123}
+      DB_CONNECT_STRING: oracle:1521/XEPDB1   # use service name, not localhost
+      DB_POOL_MIN: ${DB_POOL_MIN:-2}
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@quantumviz.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMeAdmin123}
+    depends_on:
+      oracle:
+        condition: service_healthy
+
+  # ── One-shot DB setup (migrations + seeds) ──────────────────────────────────
+  # Run with: docker compose run --rm backend-setup
+  backend-setup:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: builder          # use builder stage so tsx is available
+    container_name: quantumviz-setup
+    entrypoint: ["npx", "tsx", "db/run.ts", "--setup"]
+    environment:
+      NODE_ENV: development
+      DB_USER: ${DB_USER:-quantumviz}
+      DB_PASSWORD: ${DB_PASSWORD:-AppPassword123}
+      DB_CONNECT_STRING: oracle:1521/XEPDB1
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@quantumviz.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMeAdmin123}
+    depends_on:
+      oracle:
+        condition: service_healthy
+    profiles:
+      - setup   # only runs when explicitly called or --profile setup
+
+  # ── Frontend (static, served by nginx) ─────────────────────────────────────
+  frontend:
+    image: nginx:1.27-alpine
+    container_name: quantumviz-frontend
+    restart: unless-stopped
+    ports:
+      - "5500:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+
+# ── Named volumes ────────────────────────────────────────────────────────────
+volumes:
+  oracle_data:
+    name: quantumviz-oracle-data

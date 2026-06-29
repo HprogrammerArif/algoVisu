@@ -1,198 +1,313 @@
 # Run Guide — QuantumViz
 
-> How to set up and run the whole stack on your machine: Oracle XE → backend → frontend.
-> Written for Windows (your environment) with notes for Docker. Nothing here is needed
-> until implementation begins, but it documents the target so the build has a clear goal.
+> **Goal:** Get Oracle XE → backend API → frontend all running locally.
+> Written for **Windows + PowerShell**. ~15 min on first setup, ~1 min every return visit.
 
 ---
 
-## 0. Prerequisites
+## ✅ Prerequisites checklist
 
-| Tool | Version | Notes |
+Make sure these are installed before starting:
+
+| Tool | How to check | Install link |
 |---|---|---|
-| Node.js | LTS ≥ 18 | includes `npm`; the backend's TypeScript toolchain (`typescript`, `tsx`, `vitest`) installs via `npm install` |
-| Oracle Database XE | 21c | local install **or** Docker (see step 1) |
-| A static server | any | VS Code **Live Server**, `npx serve`, or `python -m http.server` |
-| Git | any | version control |
+| **Node.js ≥ 18 LTS** | `node -v` | https://nodejs.org |
+| **Docker Desktop** *(recommended for Oracle)* | `docker -v` | https://www.docker.com/products/docker-desktop |
+| **Git** | `git -v` | https://git-scm.com |
 
-> `node-oracledb` v6 runs in **thin mode** by default — you do **not** need Oracle
-> Instant Client. Just Node + a reachable Oracle XE.
+> `node-oracledb` runs in **thin mode** — you do **NOT** need Oracle Instant Client.
 
 ---
 
-## 1. Install & start Oracle XE 21c
+## 🚀 FIRST-TIME SETUP (do this once)
 
-Pick **one** option.
+---
 
-### Option A — Native Windows install
-1. Download "Oracle Database 21c Express Edition" for Windows from Oracle.
-2. Run the installer; set a password for `SYS` / `SYSTEM` when prompted.
-3. After install, the listener runs on port **1521**; the pluggable DB is **`XEPDB1`**.
+### Step 1 — Start Oracle XE via Docker (easiest)
 
-### Option B — Docker (often easier)
-```bash
-docker run -d --name oracle-xe \
-  -p 1521:1521 \
-  -e ORACLE_PASSWORD=YourSysPassword \
-  -e APP_USER=quantumviz \
-  -e APP_USER_PASSWORD=YourAppPassword \
+Open **PowerShell** and run:
+
+```powershell
+docker run -d --name oracle-xe `
+  -p 1521:1521 `
+  -e ORACLE_PASSWORD=SysPassword123 `
+  -e APP_USER=quantumviz `
+  -e APP_USER_PASSWORD=AppPassword123 `
   gvenzl/oracle-xe:21-slim
 ```
-The `gvenzl/oracle-xe` image auto-creates the `APP_USER` inside `XEPDB1`. If you use this,
-**skip step 2** (the app user already exists).
 
-> 🐳 **New to Docker?** Follow the step-by-step, beginner-friendly
-> **[docker-oracle-guide.md](docker-oracle-guide.md)** — it teaches Docker from scratch and
-> walks through this exact Oracle setup for QuantumViz.
+Wait **60–90 seconds** for Oracle to initialize, then confirm it's healthy:
 
----
+```powershell
+docker ps
+# STATUS column should show "healthy" or "(healthy)"
 
-## 2. Create the application schema/user (native install only)
-
-Connect as `SYSTEM` (e.g. via SQL*Plus or SQL Developer) and run:
-
-```sql
-ALTER SESSION SET CONTAINER = XEPDB1;
-
-CREATE USER quantumviz IDENTIFIED BY "YourAppPassword";
-GRANT CONNECT, RESOURCE TO quantumviz;
-ALTER USER quantumviz QUOTA UNLIMITED ON USERS;
+docker logs oracle-xe --tail 20
+# Look for: "DATABASE IS READY TO USE!"
 ```
 
-This dedicated schema keeps the app's tables isolated from `SYSTEM`.
-
-**Connect string used by the app:** `localhost:1521/XEPDB1`.
+> ✅ The image auto-creates the `quantumviz` user inside `XEPDB1` — no manual SQL needed.
+>
+> 🐳 **New to Docker?** See [docker-oracle-guide.md](docker-oracle-guide.md) for a beginner walkthrough.
+>
+> 💻 **Prefer a native install?** Download Oracle XE 21c for Windows from oracle.com, run the
+> installer, and then manually create the user (see the SQL block in the old guide).
 
 ---
 
-## 3. Configure the backend
+### Step 2 — Install backend dependencies
 
-```bash
-cd backend
+```powershell
+cd d:\UNIVERSITY\algoVisu\backend
 npm install
-cp .env.example .env      # Windows PowerShell: copy .env.example .env
 ```
 
-Edit `.env`:
+---
+
+### Step 3 — Create your `.env` file
+
+```powershell
+# Still inside backend/
+copy .env.example .env
+```
+
+Open `.env` in any editor and fill in the values — **must match what you used in Step 1**:
 
 ```ini
 NODE_ENV=development
 PORT=3000
-CORS_ORIGIN=http://127.0.0.1:5500     # the origin your static server uses
+CORS_ORIGIN=http://127.0.0.1:5500
 
-# Oracle (node-oracledb thin mode)
+# Oracle — match the docker run values above exactly
 DB_USER=quantumviz
-DB_PASSWORD=YourAppPassword
+DB_PASSWORD=AppPassword123
 DB_CONNECT_STRING=localhost:1521/XEPDB1
 DB_POOL_MIN=2
 DB_POOL_MAX=10
 
-# Auth
-JWT_SECRET=change-me-to-a-long-random-string
+# JWT — any long random string works here
+JWT_SECRET=replace-this-with-any-long-random-string
 JWT_EXPIRES_IN=1d
 
-# Seed admin (created by db seeds)
+# Default admin account (created by seed)
 ADMIN_EMAIL=admin@quantumviz.local
 ADMIN_PASSWORD=ChangeMeAdmin123
 ```
 
-> `.env` is git-ignored. Never commit real secrets — only `.env.example` is checked in.
+> `.env` is git-ignored — never commit it. Only `.env.example` is tracked.
 
 ---
 
-## 4. Create tables + seed data
+### Step 4 — Create tables and seed data
 
-```bash
-npm run db:setup        # runs db/run.ts (via tsx) → migrations (DDL) then seeds (roles, admin, catalog)
+```powershell
+# Still inside backend/
+npm run db:setup
 ```
 
-This applies `db/migrations/*.sql` in order, then `db/seeds/*.sql`. Re-running is safe if
-the scripts are written idempotently (drop-if-exists / merge), per the implementation plan.
+This runs all **migrations** (creates tables) then **seeds** (inserts roles, admin user, algorithm catalog).
+**Re-running is safe** — scripts are idempotent.
+
+✅ Expected output: lines like `✓ migration applied`, `✓ seed applied` — no `ORA-` errors.
 
 ---
 
-## 5. Start the backend API
+### Step 5 — Start the backend API
 
-```bash
-npm run dev             # tsx watch — runs the TypeScript directly, auto-reload (development)
-# or, for a production-style run:
-npm run build           # tsc → compiles src/ to dist/
-npm start               # node dist/server.js
+Open a **new PowerShell terminal**:
+
+```powershell
+cd d:\UNIVERSITY\algoVisu\backend
+npm run dev
 ```
 
-Verify it's up:
-```bash
+You should see:
+```
+[tsx] watching...
+Server listening on http://localhost:3000
+```
+
+**Sanity check** (in a browser or another terminal):
+```powershell
 curl http://localhost:3000/api/v1/health
-# → { "status": "ok", "uptime": ... }
+# Expected: { "status": "ok", "uptime": ... }
 ```
 
 ---
 
-## 6. Serve the frontend
+### Step 6 — Serve the frontend
 
-The frontend is static — pick any server. From the repo root:
+Open another **new PowerShell terminal**:
 
-```bash
-# Option 1: npx serve
-npx serve frontend -l 5500
-
-# Option 2: Python
-cd frontend && python -m http.server 5500
-
-# Option 3: VS Code "Live Server" → right-click frontend/index.html → "Open with Live Server"
+```powershell
+npx serve d:\UNIVERSITY\algoVisu\frontend -l 5500
 ```
 
-Make sure `frontend/config.js` points at the API:
-```js
-window.API_BASE_URL = "http://localhost:3000/api/v1";
-```
-And that the backend `.env` `CORS_ORIGIN` matches the origin your static server prints
-(e.g. `http://127.0.0.1:5500`).
+Then open **http://127.0.0.1:5500** in your browser.
 
-Open the printed URL (e.g. `http://127.0.0.1:5500`) in the browser.
+> **Alternatives if `npx serve` doesn't work:**
+> - VS Code: right-click `frontend/index.html` → **"Open with Live Server"**
+> - Python: `cd frontend && python -m http.server 5500`
 
 ---
 
-## 7. Log in
+### Step 7 — Log in
 
-- **Admin:** the `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env` (seeded in step 4).
-- **Student:** register a new account from the Register page.
+| Account | Email | Password |
+|---|---|---|
+| **Admin** | `admin@quantumviz.local` | `ChangeMeAdmin123` |
+| **Student** | Register a new account from the UI | — |
 
 ---
 
-## 8. Run the tests (backend)
+## ⚡ DAILY QUICK START (after first-time setup)
 
-```bash
-cd backend
-npm test                # vitest run  (unit + integration)
-npm run typecheck       # tsc --noEmit (type-check without building)
+3 commands in 3 terminals — that's it:
+
+```powershell
+# Terminal 1 — ensure Oracle is running
+docker start oracle-xe
+
+# Terminal 2 — backend
+cd d:\UNIVERSITY\algoVisu\backend
+npm run dev
+
+# Terminal 3 — frontend
+npx serve d:\UNIVERSITY\algoVisu\frontend -l 5500
 ```
 
-Unit tests use fake in-memory repositories (no Oracle needed). Integration tests expect a
-reachable test schema — see `backend/README.md`.
+Then open **http://127.0.0.1:5500** ✅
 
 ---
 
-## 9. Common issues
+## 🐳 DOCKER COMPOSE — run everything with one command
 
-| Symptom | Likely cause / fix |
+If you want Oracle + backend + frontend all managed together, use Compose.
+
+### Files added to the repo
+
+| File | Purpose |
 |---|---|
-| `ORA-12541: TNS:no listener` | Oracle XE not running / wrong port. Start the service or container; confirm `1521`. |
-| `ORA-01017: invalid username/password` | `DB_USER`/`DB_PASSWORD` wrong, or user not created in `XEPDB1` (step 2). |
-| `ORA-12514: service not known` | `DB_CONNECT_STRING` service wrong — use `localhost:1521/XEPDB1`, not `XE`. |
-| CORS error in browser console | `CORS_ORIGIN` in `.env` ≠ the static server's origin. Make them match. |
-| 401 on bookmark/progress | Not logged in / token expired — log in again. |
-| Frontend can't reach API | `config.js` `API_BASE_URL` wrong, or backend not started. |
+| [`docker-compose.yml`](../docker-compose.yml) | Defines all 3 services (oracle, backend, frontend) |
+| [`backend/Dockerfile`](../backend/Dockerfile) | Multi-stage build: compile TS → run compiled JS |
+| [`backend/.dockerignore`](../backend/.dockerignore) | Excludes `node_modules/`, `dist/`, `.env` from build context |
+| [`nginx.conf`](../nginx.conf) | Serves static frontend + proxies `/api/` to backend |
+
+### First-time Compose setup
+
+```powershell
+# From the repo root (d:\UNIVERSITY\algoVisu)
+
+# 1. Build images and start all services
+docker compose up --build -d
+
+# 2. Wait ~90 s for Oracle to become healthy, then run migrations + seeds
+docker compose run --rm backend-setup
+
+# 3. Open in browser
+start http://localhost:5500
+```
+
+> The `backend-setup` service runs `tsx db/run.ts --setup` inside the compose network
+> and exits after seeding. You only need this on first run (or after `docker compose down -v`).
+
+### Daily Compose start (after first-time setup)
+
+```powershell
+docker compose up -d          # start all services in background
+start http://localhost:5500   # open frontend
+```
+
+### Compose logs and status
+
+```powershell
+docker compose ps             # show running services
+docker compose logs -f        # follow all logs
+docker compose logs backend   # backend logs only
+docker compose logs oracle    # Oracle logs only
+```
+
+### Stop / reset
+
+```powershell
+docker compose down           # stop containers (data preserved in volume)
+docker compose down -v        # ⚠️  stop AND delete DB data volume (full reset)
+```
+
+### Compose vs manual — which to use?
+
+| | Docker Compose | Manual (3-terminal) |
+|---|---|---|
+| **Setup effort** | One command | Steps 1–6 above |
+| **Oracle persistence** | Named volume (automatic) | Container restarted manually |
+| **CORS config** | nginx proxies `/api/` — no CORS needed | Must match `CORS_ORIGIN` in `.env` |
+| **Hot reload** | ❌ (rebuild image to update) | ✅ `tsx watch` auto-reloads |
+| **Best for** | Demo / production-like run | Active development |
+
+> 💡 **Recommended workflow:** use Docker Compose to demo/submit the project, and the
+> 3-terminal manual setup for day-to-day development (because of hot reload).
 
 ---
 
-## 10. One-page quick start (after first setup)
+## 🛠️ Useful commands reference
 
-```bash
-# 1. ensure Oracle XE is running (service or `docker start oracle-xe`)
-# 2. backend
-cd backend && npm run dev
-# 3. frontend (new terminal)
-npx serve frontend -l 5500
-# 4. open http://127.0.0.1:5500
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start backend in watch mode (auto-reload on save) |
+| `npm run build` | Compile TypeScript → `dist/` |
+| `npm start` | Run compiled backend (production-style) |
+| `npm run db:setup` | Run all migrations + seeds (safe to re-run) |
+| `npm run db:migrate` | Run migrations only |
+| `npm run db:seed` | Run seeds only |
+| `npm run db:reset` | Drop everything and re-run full setup |
+| `npm test` | Run all unit tests (no Oracle needed) |
+| `npm run typecheck` | TypeScript type-check without building |
+| `docker start oracle-xe` | Start Oracle container (e.g. after a PC reboot) |
+| `docker stop oracle-xe` | Stop Oracle container |
+| `docker logs oracle-xe` | View Oracle container logs |
+
+---
+
+## 🔴 Common errors and fixes
+
+| Error / Symptom | Cause | Fix |
+|---|---|---|
+| `ORA-12541: TNS:no listener` | Oracle not running | `docker start oracle-xe`, wait 30 s, retry |
+| `ORA-01017: invalid username/password` | `.env` password doesn't match Docker | Make `DB_PASSWORD` in `.env` match `APP_USER_PASSWORD` in `docker run` |
+| `ORA-12514: service not known` | Wrong connect string | Use `localhost:1521/XEPDB1` — not `XE` or `localhost:1521/XE` |
+| `ORA-01031: insufficient privileges` | User missing grants | Re-create container with `APP_USER` env vars set |
+| CORS error in browser console | `CORS_ORIGIN` in `.env` ≠ frontend URL | Set `CORS_ORIGIN=http://127.0.0.1:5500` (or whatever port your server uses) |
+| `ECONNREFUSED` / backend unreachable | Backend not started | Run `npm run dev` in `backend/` |
+| Frontend blank / can't reach API | Wrong `API_BASE_URL` | Open `frontend/config.js`, confirm it says `http://localhost:3000/api/v1` |
+| Docker not found / won't start | Docker Desktop closed | Open Docker Desktop, wait for it to fully start, then retry |
+
+---
+
+## 📁 Project layout (quick reference)
+
 ```
+algoVisu/
+├── frontend/          ← static site — open in browser
+│   ├── index.html     ← main algorithm visualizer page
+│   ├── account.html   ← login / register / bookmarks page
+│   └── config.js      ← set API_BASE_URL here
+├── backend/           ← Node + Express REST API (TypeScript)
+│   ├── src/           ← application source code
+│   ├── db/            ← migrations + seeds
+│   ├── .env.example   ← template — copy to .env and fill in
+│   └── package.json   ← all npm scripts listed above
+└── docs/              ← all documentation
+```
+
+---
+
+## 🔗 Related docs
+
+| Doc | What's in it |
+|---|---|
+| [docker-oracle-guide.md](docker-oracle-guide.md) | Beginner Docker + Oracle XE walkthrough |
+| [api-reference.md](api-reference.md) | All REST endpoints with payloads and status codes |
+| [architecture.md](architecture.md) | System architecture overview |
+| [database-schema.md](database-schema.md) | Tables, ER diagram, 3NF normalization |
+| [`../docker-compose.yml`](../docker-compose.yml) | Full-stack Docker Compose config |
+| [`../backend/Dockerfile`](../backend/Dockerfile) | Backend multi-stage Docker build |
