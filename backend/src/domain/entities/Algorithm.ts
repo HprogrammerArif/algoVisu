@@ -9,6 +9,11 @@ export interface CodeSnippet {
   code: string;
 }
 
+export interface ExplanationSection {
+  heading: string;
+  body: string;
+}
+
 /** Light shape used in catalog/list responses. */
 export interface AlgorithmSummary {
   id: number;
@@ -26,4 +31,5 @@ export interface AlgorithmDetail extends AlgorithmSummary {
   spaceComplexity: string | null;
   timeComplexities: TimeComplexities;
   codeSnippets: CodeSnippet[];
+  explanation: ExplanationSection[];
 }

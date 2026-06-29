@@ -24,6 +24,7 @@ const DEFAULT: AlgorithmDetail[] = [
     spaceComplexity: 'O(1)',
     timeComplexities: { best: 'O(n)', average: 'O(n^2)', worst: 'O(n^2)' },
     codeSnippets: [{ language: 'pseudocode', code: 'for i ... for j ... if a[j]>a[j+1] swap' }],
+    explanation: [{ heading: 'How it works', body: 'Repeatedly swaps adjacent out-of-order pairs.' }],
   },
   {
     id: 2,
@@ -37,6 +38,7 @@ const DEFAULT: AlgorithmDetail[] = [
     spaceComplexity: 'O(1)',
     timeComplexities: { best: 'O(1)', average: 'O(log n)', worst: 'O(log n)' },
     codeSnippets: [{ language: 'pseudocode', code: 'lo=0; hi=n-1; while lo<=hi ...' }],
+    explanation: [{ heading: 'How it works', body: 'Halves the sorted search range each step.' }],
   },
 ];
 
@@ -96,6 +98,7 @@ export function createFakeAlgorithmRepository(
         spaceComplexity: n.spaceComplexity ?? null,
         timeComplexities: n.timeComplexities,
         codeSnippets: n.codeSnippets,
+        explanation: [],
       };
       items.push(detail);
       return detail;

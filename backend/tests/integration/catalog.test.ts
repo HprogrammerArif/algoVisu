@@ -33,6 +33,8 @@ describe('catalog routes', () => {
     expect(res.status).toBe(200);
     expect(res.body.algorithm.name).toBe('Binary Search');
     expect(res.body.algorithm.timeComplexities.average).toBe('O(log n)');
+    expect(Array.isArray(res.body.algorithm.explanation)).toBe(true);
+    expect(res.body.algorithm.explanation.length).toBeGreaterThan(0);
   });
 
   it('GET /algorithms/:slug returns 404 for unknown slug', async () => {

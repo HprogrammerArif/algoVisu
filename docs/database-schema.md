@@ -72,6 +72,7 @@
 | categories | algorithms | 1 : M | `algorithms.category_id` |
 | algorithms | time_complexities | 1 : M | `time_complexities.algorithm_id` |
 | algorithms | code_snippets | 1 : M | `code_snippets.algorithm_id` |
+| algorithms | algorithm_explanations | 1 : M | `algorithm_explanations.algorithm_id` |
 | users | algorithms | M : N | `bookmarks` |
 | users | algorithms | M : N | `progress` |
 | users | notes | 1 : M | `notes.user_id` *(optional)* |
@@ -113,7 +114,7 @@ Index: `ux_users_email` (UNIQUE), `ix_users_role_id`.
 | `description` | VARCHAR2(400) | |
 | `display_order` | NUMBER | DEFAULT 0 |
 
-Example rows: `sorting`, `searching`, `graph`, `grid`, `dynamic-programming`, `math`, `lists`.
+Example rows: `sorting`, `searching`, `graph`, `grid`, `dynamic-programming`, `string`, `math`, `lists`.
 
 ### 3.4 `algorithms`
 The heart of the catalog.
@@ -159,7 +160,22 @@ One implementation per language (multi-language ready).
 | `code` | CLOB | NOT NULL |
 | | | UNIQUE(`algorithm_id`,`language`) |
 
-### 3.7 `bookmarks` (users M:N algorithms)
+### 3.7 `algorithm_explanations`
+In-depth, structured explanation sections per algorithm (one row per section → 3NF). Powers the
+"Explain" modal in the UI. Each algorithm has 5 sections: *What problem it solves*, *How it works*,
+*Why & when to use it*, *Complexity intuition*, *Real-world uses*.
+
+| Column | Type | Constraints |
+|---|---|---|
+| `explanation_id` | NUMBER | PK, identity |
+| `algorithm_id` | NUMBER | NOT NULL, FK → `algorithms(algorithm_id)` ON DELETE CASCADE |
+| `heading` | VARCHAR2(120) | NOT NULL — the section title |
+| `body` | CLOB | NOT NULL — the section text |
+| `display_order` | NUMBER | NOT NULL, DEFAULT 0 — section ordering |
+
+Index: `ix_expl_algo` on `algorithm_id`.
+
+### 3.8 `bookmarks` (users M:N algorithms)
 | Column | Type | Constraints |
 |---|---|---|
 | `bookmark_id` | NUMBER | PK, identity |
@@ -168,7 +184,7 @@ One implementation per language (multi-language ready).
 | `created_at` | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
 | | | UNIQUE(`user_id`,`algorithm_id`) |
 
-### 3.8 `progress` (users M:N algorithms, with status)
+### 3.9 `progress` (users M:N algorithms, with status)
 | Column | Type | Constraints |
 |---|---|---|
 | `progress_id` | NUMBER | PK, identity |
@@ -221,10 +237,13 @@ Seeded by `backend/db/seeds/`:
 
 - **roles:** admin, teacher, student.
 - **a default admin user** (credentials from `.env`, hashed at seed time).
-- **categories:** sorting, searching, graph, grid, dynamic-programming, math, lists.
-- **algorithms + complexities + code_snippets:** the catalog migrated from the existing
-  front-end `algorithms.js` (e.g. bubble sort, binary search, BFS, DFS, Dijkstra …),
-  each with explanation, Big-O per case, and at least one code snippet.
+- **categories:** sorting, searching, graph, grid, dynamic-programming, string, math, lists.
+- **algorithms + complexities + code_snippets:** a curated set of **15** classic algorithms
+  (`backend/db/seeds/catalogData.ts`) — bubble/selection/insertion/merge/quick sort,
+  linear/binary search, BFS, DFS, Dijkstra, A*, 0/1 knapsack, KMP, Sieve of Eratosthenes,
+  Tower of Hanoi — each with Big-O per case, space complexity, and JavaScript + pseudocode snippets.
+- **algorithm_explanations:** the 5 in-depth sections per algorithm
+  (`backend/db/seeds/explanationsData.ts`, seeded by `seedExplanations.ts`).
 
 ---
 
@@ -240,13 +259,15 @@ backend/db/migrations/
   006_create_code_snippets.sql
   007_create_bookmarks.sql
   008_create_progress.sql
-  009_create_notes.sql            -- optional
-  010_create_tags.sql             -- optional
+  009_create_algorithm_explanations.sql
 backend/db/seeds/
   seedRoles.ts
-  seedAdmin.ts        -- bcrypt-hashes ADMIN_PASSWORD
-  seedCategories.ts
-  seedCatalog.ts      -- algorithms + complexities + code snippets
+  seedAdmin.ts            -- bcrypt-hashes ADMIN_PASSWORD
+  seedCategories.ts       -- includes the `string` category
+  catalogData.ts          -- the 15-algorithm dataset (metadata + snippets)
+  seedCatalog.ts          -- inserts algorithms + complexities + code snippets
+  explanationsData.ts     -- the 5 explanation sections × 15 algorithms
+  seedExplanations.ts     -- inserts the explanation sections
 ```
 
 `backend/db/run.ts` (run via `tsx`) applies the `.sql` migrations then the TypeScript seeders, against the

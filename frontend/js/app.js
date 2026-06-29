@@ -7,7 +7,12 @@ let steps = [];
 let stepIdx = 0;
 let isPlaying = false;
 let playTimer = null;
-let selectedAlgoId = 'bubble';
+let selectedSlug = null;
+let catalog = [];          // list items from GET /algorithms
+let currentDetail = null;  // detail object from GET /algorithms/:slug
+let currentVisualizer = 'array';
+let isCustomActive = false;
+let currentSnippets = {};  // { language: code } for the selected algorithm
 let activeCategory = 'all';
 let searchQuery = '';
 let speedMs = 150;
@@ -43,39 +48,74 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Grid defaults
   resetGridState();
-  
-  // Set default algorithms index
-  renderAlgoList();
-  selectAlgorithm('bubble');
+
+  // Load the catalog from the backend, then select the first algorithm.
+  bootCatalog();
 });
+
+// ───────────────────────────────────────────────────────────
+// 0. BACKEND CATALOG BOOT (async)
+// ───────────────────────────────────────────────────────────
+async function bootCatalog() {
+  setCatalogStatus('Loading algorithms…');
+  try {
+    catalog = await window.QV.algorithmsApi.list({});
+  } catch (err) {
+    setCatalogStatus('Cannot reach the API. Is the backend running on localhost:3000? (' + (err.message || err.code) + ')', true);
+    return;
+  }
+  if (!catalog.length) {
+    setCatalogStatus('No algorithms found.');
+    return;
+  }
+  clearCatalogStatus();
+  renderAlgoList();
+  const initial = (location.hash || '').replace(/^#/, '').trim();
+  selectAlgorithm(catalog.some((a) => a.slug === initial) ? initial : catalog[0].slug);
+}
+
+function setCatalogStatus(msg, isError) {
+  const el = document.getElementById('catalog-status');
+  el.hidden = false;
+  el.textContent = msg;
+  el.className = 'catalog-status' + (isError ? ' error' : '');
+}
+function clearCatalogStatus() {
+  const el = document.getElementById('catalog-status');
+  el.hidden = true;
+  el.textContent = '';
+}
 
 // ───────────────────────────────────────────────────────────
 // 1. STATE REVERSIBLE PLAYBACK snapshot ENGINE
 // ───────────────────────────────────────────────────────────
 function initSimulation() {
   pause();
-  const algo = ALGO_DATABASE[selectedAlgoId];
-  if (!algo) return;
-  
+  const gen = window.ALGO_REGISTRY[selectedSlug];
+  if (!gen) return;
+
   steps = [];
   stepIdx = 0;
-  
-  // Read inputs according to visual mode
-  if (algo.visualizer === 'grid') {
-    initSnapshotsForGrid(algo);
-  } else if (algo.visualizer === 'matrix') {
-    initSnapshotsForMatrix(algo);
-  } else if (algo.visualizer === 'string') {
-    initSnapshotsForString(algo);
-  } else if (algo.visualizer === 'math') {
-    initSnapshotsForMath(algo);
-  } else if (algo.visualizer === 'graph') {
-    initSnapshotsForGraph(algo);
+
+  // Shim mirrors the old per-algorithm object the snapshot builders expect.
+  const algoShim = { generator: gen, visualizer: currentVisualizer, isCustom: isCustomActive };
+
+  // Read inputs according to the DB-declared visualizer type.
+  if (currentVisualizer === 'grid') {
+    initSnapshotsForGrid(algoShim);
+  } else if (currentVisualizer === 'matrix') {
+    initSnapshotsForMatrix(algoShim);
+  } else if (currentVisualizer === 'string') {
+    initSnapshotsForString(algoShim);
+  } else if (currentVisualizer === 'math') {
+    initSnapshotsForMath(algoShim);
+  } else if (currentVisualizer === 'graph') {
+    initSnapshotsForGraph(algoShim);
   } else {
     // Array sorting / searching
-    initSnapshotsForArray(algo);
+    initSnapshotsForArray(algoShim);
   }
-  
+
   drawCurrentStep();
   updatePlaybackUI();
 }
@@ -85,7 +125,7 @@ function initSnapshotsForArray(algo) {
   let genRunner;
   
   try {
-    if (selectedAlgoId.startsWith('custom') || algo.isCustom) {
+    if (algo.isCustom) {
       genRunner = compileCustomCode(arrayClone);
     } else {
       genRunner = algo.generator(arrayClone);
@@ -414,9 +454,8 @@ function initSnapshotsForMath(algo) {
 function drawCurrentStep() {
   if (steps.length === 0) return;
   const stepObj = steps[stepIdx];
-  const algo = ALGO_DATABASE[selectedAlgoId];
-  if (!algo) return;
-  
+  if (!selectedSlug) return;
+
   // Write variable stats immediately
   document.getElementById('stat-ops').innerText = stepObj.ops;
   document.getElementById('stat-pct').innerText = steps.length > 1 ? `${Math.floor((stepIdx / (steps.length - 1)) * 100)}%` : '0%';
@@ -443,20 +482,20 @@ function drawCurrentStep() {
   const channels = ['array', 'grid', 'graph', 'matrix', 'string', 'math'];
   channels.forEach(ch => {
     const el = document.getElementById(`viz-${ch}`);
-    if (ch === algo.visualizer) el.classList.add('active');
+    if (ch === currentVisualizer) el.classList.add('active');
     else el.classList.remove('active');
   });
-  
+
   // Trigger rendering action
-  if (algo.visualizer === 'grid') {
+  if (currentVisualizer === 'grid') {
     drawGrid(stepObj.grid, stepObj);
-  } else if (algo.visualizer === 'graph') {
+  } else if (currentVisualizer === 'graph') {
     drawGraph(stepObj.graph, stepObj);
-  } else if (algo.visualizer === 'matrix') {
+  } else if (currentVisualizer === 'matrix') {
     drawMatrix(stepObj.matrix, stepObj);
-  } else if (algo.visualizer === 'string') {
+  } else if (currentVisualizer === 'string') {
     drawString(stepObj.string, stepObj);
-  } else if (algo.visualizer === 'math') {
+  } else if (currentVisualizer === 'math') {
     drawMath(stepObj.math, stepObj);
   } else {
     drawArray(stepObj.array, stepObj);
@@ -608,7 +647,7 @@ window.addEventListener('mouseup', () => {
   isDrawingWeight = false;
   isDraggingStart = false;
   isDraggingEnd = false;
-  if (ALGO_DATABASE[selectedAlgoId]?.visualizer === 'grid') {
+  if (currentVisualizer === 'grid') {
     resetSimulation();
   }
 });
@@ -666,58 +705,68 @@ function compileCustomCode(args) {
 // ───────────────────────────────────────────────────────────
 function renderAlgoList() {
   algoListContainer.innerHTML = '';
-  
-  Object.keys(ALGO_DATABASE).forEach(key => {
-    const algo = ALGO_DATABASE[key];
+
+  catalog.forEach((algo) => {
     const matchesSearch = algo.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = (activeCategory === 'all' || algo.category === activeCategory);
-    
-    if (matchesSearch && matchesCategory) {
-      const item = document.createElement('div');
-      item.className = `algo-item ${key === selectedAlgoId ? 'active' : ''}`;
-      
-      let badgeClass = 'badge-arr';
-      if (algo.visualizer === 'grid') badgeClass = 'badge-grid';
-      else if (algo.visualizer === 'graph') badgeClass = 'badge-graph';
-      else if (algo.visualizer === 'matrix') badgeClass = 'badge-mat';
-      else if (algo.visualizer === 'string') badgeClass = 'badge-str';
-      else if (algo.visualizer === 'math') badgeClass = 'badge-math';
-      
-      item.innerHTML = `
-        <div class="algo-header-row">
-          <span class="algo-name">${algo.name}</span>
-          <span class="algo-badge ${badgeClass}">${algo.visualizer}</span>
-        </div>
-        <div class="algo-subinfo">
-          <span>Time: ${algo.complexity}</span>
-          <span>Space: ${algo.space}</span>
-        </div>
-      `;
-      
-      item.addEventListener('click', () => selectAlgorithm(key));
-      algoListContainer.appendChild(item);
-    }
+    if (!(matchesSearch && matchesCategory)) return;
+
+    const viz = algo.visualizerType;
+    let badgeClass = 'badge-arr';
+    if (viz === 'grid') badgeClass = 'badge-grid';
+    else if (viz === 'graph') badgeClass = 'badge-graph';
+    else if (viz === 'matrix') badgeClass = 'badge-mat';
+    else if (viz === 'string') badgeClass = 'badge-str';
+    else if (viz === 'math') badgeClass = 'badge-math';
+
+    const item = document.createElement('div');
+    item.className = `algo-item ${algo.slug === selectedSlug ? 'active' : ''}`;
+    item.innerHTML = `
+      <div class="algo-header-row">
+        <span class="algo-name">${algo.name}</span>
+        <span class="algo-badge ${badgeClass}">${viz}</span>
+      </div>
+      <div class="algo-subinfo">
+        <span>${algo.category}</span>
+        <span>${algo.difficulty || ''}</span>
+      </div>
+    `;
+    item.addEventListener('click', () => selectAlgorithm(algo.slug));
+    algoListContainer.appendChild(item);
   });
 }
 
-function selectAlgorithm(key) {
-  selectedAlgoId = key;
-  const algo = ALGO_DATABASE[key];
-  if (!algo) return;
-  
-  // Highlight list item
-  const items = algoListContainer.querySelectorAll('.algo-item');
-  items.forEach(el => el.classList.remove('active'));
-  
-  // Read code editor contents
-  codeEditor.value = algo.code;
-  syncGutterLines();
-  
-  // Configure contextual settings panel labels
+async function selectAlgorithm(slug) {
+  selectedSlug = slug;
+  isCustomActive = false;
+
+  // Fetch the algorithm's metadata + code from the backend.
+  try {
+    currentDetail = await window.QV.algorithmsApi.detail(slug);
+  } catch (err) {
+    logMessage('Failed to load ' + slug + ': ' + (err.message || err.code), 'compare');
+    return;
+  }
+  currentVisualizer = currentDetail.visualizerType;
+
+  renderDetailPanel(currentDetail);
+  renderInputsPanel(currentVisualizer);
+  renderAlgoList();
+
+  const gen = window.ALGO_REGISTRY[slug];
+  if (!gen) {
+    showComingSoon(currentDetail.name);
+    return;
+  }
+  resetSimulation();
+}
+
+// Populate the contextual input controls for the active visualizer type.
+function renderInputsPanel(visualizer) {
   const inputsPanel = document.getElementById('dynamic-inputs');
   inputsPanel.innerHTML = '';
-  
-  if (algo.visualizer === 'grid') {
+
+  if (visualizer === 'grid') {
     inputsPanel.innerHTML = `
       <label>Grid Size Preset Options</label>
       <div class="presets-row">
@@ -726,22 +775,22 @@ function selectAlgorithm(key) {
         <button class="preset-btn" onclick="resizeGridBoard(18, 30)">Large (18x30)</button>
         <button class="preset-btn" onclick="clearActiveGridWalls()">Clear Walls</button>
       </div>
-      <div style="font-size:10px; color:#64748b; margin-top:8px;">
+      <div style="font-size:10px; color:var(--text-dim); margin-top:8px;">
         🖱 Click & Drag to paint <b>Walls</b>. Drag anchors to shift start/end. <br>⌨ Hold <b>Shift</b> + drag to paint <b>Weights⚓</b>.
       </div>
     `;
-  } else if (algo.visualizer === 'matrix') {
+  } else if (visualizer === 'matrix') {
     inputsPanel.innerHTML = `
       <label>Knapsack weights & values</label>
       <input type="text" class="input-field" value="Weights: [2,3,4,5], Values: [3,4,5,6]" disabled>
-      <div style="font-size:10px; color:#64748b; margin-top:6px;">DP recursive equations solve optimal cells state values sequentially.</div>
+      <div style="font-size:10px; color:var(--text-dim); margin-top:6px;">DP recursive equations solve optimal cells state values sequentially.</div>
     `;
-  } else if (algo.visualizer === 'string') {
+  } else if (visualizer === 'string') {
     inputsPanel.innerHTML = `
       <label>Pattern text parameters</label>
       <input type="text" class="input-field" value="Ref: AABAACAADAABAABA, Pat: AABA" disabled>
     `;
-  } else if (algo.visualizer === 'math') {
+  } else if (visualizer === 'math') {
     inputsPanel.innerHTML = `
       <label>Math computational modes</label>
       <div class="presets-row">
@@ -758,18 +807,89 @@ function selectAlgorithm(key) {
         <button class="preset-btn" onclick="setArrayPreset('reversed')">Reversed</button>
       </div>
     `;
-    // Bind array inputs key events
     document.getElementById('arr-val-inp').addEventListener('change', (e) => {
       arrInput = e.target.value.split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x));
       resetSimulation();
     });
   }
-  
-  // Re-render side selections to assign active highlight
-  renderAlgoList();
-  
-  // Trigger simulation snapshots compilation
-  resetSimulation();
+}
+
+// Render the DB-driven detail panel + load the code snippet into the editor.
+function renderDetailPanel(detail) {
+  const nameEl = document.getElementById('detail-name');
+  if (nameEl) nameEl.textContent = detail.name;
+  const diff = document.getElementById('detail-difficulty');
+  if (diff) {
+    diff.textContent = detail.difficulty || '';
+    diff.className = 'detail-badge diff-' + (detail.difficulty || 'na');
+  }
+  const summaryEl = document.getElementById('detail-summary');
+  if (summaryEl) summaryEl.textContent = detail.summary || '';
+  const descEl = document.getElementById('detail-description');
+  if (descEl) descEl.textContent = detail.description || '';
+  const cplx = document.getElementById('detail-complexity');
+  if (cplx) {
+    const t = detail.timeComplexities || {};
+    cplx.innerHTML =
+      '<span>Best <b>' + (t.best || '—') + '</b></span>' +
+      '<span>Avg <b>' + (t.average || '—') + '</b></span>' +
+      '<span>Worst <b>' + (t.worst || '—') + '</b></span>' +
+      '<span>Space <b>' + (detail.spaceComplexity || '—') + '</b></span>';
+  }
+  // Load snippets; default to JavaScript so the sandbox can compile it.
+  currentSnippets = {};
+  (detail.codeSnippets || []).forEach((s) => { currentSnippets[s.language] = s.code; });
+  setSnippetLang(currentSnippets['javascript'] ? 'javascript' : 'pseudocode');
+
+  // Show the Explain button only when there is explanation content.
+  const explainBtn = document.getElementById('btn-explain');
+  if (explainBtn) explainBtn.hidden = !(detail.explanation && detail.explanation.length);
+}
+
+// Open the in-depth explanation modal for the current algorithm.
+function openExplanation() {
+  if (!currentDetail || !currentDetail.explanation || !currentDetail.explanation.length) return;
+  document.getElementById('explain-title').textContent = currentDetail.name;
+  const body = document.getElementById('explain-body');
+  body.innerHTML = '';
+  currentDetail.explanation.forEach((sec) => {
+    const section = document.createElement('section');
+    section.className = 'explain-section';
+    const h = document.createElement('h4');
+    h.textContent = sec.heading;
+    const p = document.createElement('p');
+    p.textContent = sec.body;
+    section.appendChild(h);
+    section.appendChild(p);
+    body.appendChild(section);
+  });
+  const modal = document.getElementById('explain-modal');
+  modal.hidden = false;
+  body.scrollTop = 0;
+}
+
+function closeExplanation() {
+  const modal = document.getElementById('explain-modal');
+  if (modal) modal.hidden = true;
+}
+
+function setSnippetLang(lang) {
+  document.querySelectorAll('.snippet-tab').forEach((b) => b.classList.toggle('active', b.dataset.lang === lang));
+  codeEditor.value = currentSnippets[lang] || '// (no snippet available)';
+  syncGutterLines();
+}
+
+// Shown when a catalog entry has no client-side generator yet.
+function showComingSoon(name) {
+  steps = [];
+  stepIdx = 0;
+  const explainBtn = document.getElementById('btn-explain');
+  if (explainBtn) explainBtn.hidden = true;
+  const channels = ['array', 'grid', 'graph', 'matrix', 'string', 'math'];
+  channels.forEach((ch) => document.getElementById('viz-' + ch).classList.remove('active'));
+  const host = document.getElementById('viz-array');
+  host.classList.add('active');
+  host.innerHTML = '<div style="margin:auto;color:var(--text-dim);font-family:var(--mono);font-size:12px;">Visualization for ' + name + ' is coming soon.</div>';
 }
 
 function resizeGridBoard(r, c) {
@@ -836,11 +956,9 @@ function setupEventListeners() {
   // Compile / Run Sandbox button hook
   document.getElementById('btn-compile').addEventListener('click', () => {
     pause();
-    // Mark algorithm status as sandboxed custom code
-    if (ALGO_DATABASE[selectedAlgoId]) {
-      ALGO_DATABASE[selectedAlgoId].isCustom = true;
-      ALGO_DATABASE[selectedAlgoId].code = codeEditor.value;
-    }
+    // Flag a session-local custom run for the array visualizer. initSnapshotsForArray
+    // compiles the editor's generator when isCustomActive is set; cleared on next select.
+    isCustomActive = true;
     logMessage("Sandboxed custom code compiled successfully. Running simulation...", "done");
     initSimulation();
   });
@@ -857,5 +975,20 @@ function setupEventListeners() {
   
   document.getElementById('speed-range').addEventListener('input', (e) => {
     setSpeed(parseInt(e.target.value, 10));
+  });
+
+  // Code snippet language tabs (JS / pseudocode)
+  document.querySelectorAll('.snippet-tab').forEach((b) => {
+    b.addEventListener('click', () => setSnippetLang(b.dataset.lang));
+  });
+
+  // Explanation modal: open, close (X), backdrop click, Esc
+  document.getElementById('btn-explain').addEventListener('click', openExplanation);
+  document.getElementById('explain-close').addEventListener('click', closeExplanation);
+  document.getElementById('explain-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'explain-modal') closeExplanation();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeExplanation();
   });
 }

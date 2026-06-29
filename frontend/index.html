@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuantumViz // Reversible Algorithmic Sandbox IDE</title>
+
+  <!-- Inline SVG favicon (avoids a /favicon.ico 404; no binary asset, no build step) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23030712'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' font-weight='bold' fill='%2300f0ff' text-anchor='middle'%3EQ%3C/text%3E%3C/svg%3E">
+
   
   <!-- Font assets -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,17 +16,22 @@
   
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Theme controller (runs early to avoid a flash of the wrong theme) -->
+  <script src="js/theme.js"></script>
 </head>
 <body>
 
   <!-- TOP BRANDING BAR -->
   <header id="topbar">
-    <div class="brand">QUANTUM<em>VlZ</em> // v2.0</div>
+    <div class="brand">QUANTUM<em>VIZ</em> // v2.0</div>
     <div class="sys-status">
       <span class="dot-pulse"></span>
       <span>ENGINE STATUS: ON-LINE</span>
       <span>|</span>
       <span>WORKSPACE: LOCALHOST</span>
+      <span>|</span>
+      <button class="theme-toggle" data-theme-toggle aria-label="Switch theme">☀ LIGHT</button>
       <span>|</span>
       <a href="account.html" style="color:var(--neon-cyan); text-decoration:none;">ACCOUNT / DB CATALOG →</a>
     </div>
@@ -34,22 +43,24 @@
     <!-- LEFT SIDEBAR: ALGORITHMS SELECTOR -->
     <aside id="sidebar">
       <div class="search-box">
-        <input type="text" id="search-inp" placeholder="⚡ SEARCH 105+ ALGORITHMS...">
+        <input type="text" id="search-inp" placeholder="⚡ SEARCH ALGORITHMS...">
       </div>
-      
-      <!-- Category filter tabs -->
+
+      <!-- Category filter tabs (data-cat matches the API category slug) -->
       <div class="cat-scroll">
         <div class="cat-pill active" data-cat="all">ALL</div>
-        <div class="cat-pill" data-cat="sort">SORT</div>
-        <div class="cat-pill" data-cat="search">SEARCH</div>
+        <div class="cat-pill" data-cat="sorting">SORT</div>
+        <div class="cat-pill" data-cat="searching">SEARCH</div>
         <div class="cat-pill" data-cat="grid">GRID</div>
         <div class="cat-pill" data-cat="graph">GRAPHS</div>
-        <div class="cat-pill" data-cat="lists">LISTS</div>
-        <div class="cat-pill" data-cat="dp">D-P</div>
+        <div class="cat-pill" data-cat="dynamic-programming">D-P</div>
+        <div class="cat-pill" data-cat="string">STRING</div>
         <div class="cat-pill" data-cat="math">MATH</div>
-        <div class="cat-pill" data-cat="custom">CUSTOM</div>
       </div>
       
+      <!-- Catalog loading / error / empty status -->
+      <div id="catalog-status" class="catalog-status" hidden></div>
+
       <!-- Algorithm selection items -->
       <div class="algo-list" id="algo-list">
         <!-- Rendered dynamically -->
@@ -66,6 +77,18 @@
           ALGORITHM PLAYBACK ENGINE
         </h2>
         <span class="panel-status status-idle" id="sys-badge">IDLE</span>
+      </div>
+
+      <!-- DB-DRIVEN ALGORITHM DETAIL -->
+      <div id="algo-detail" class="algo-detail">
+        <div class="detail-head">
+          <span id="detail-name" class="detail-name">—</span>
+          <span id="detail-difficulty" class="detail-badge"></span>
+          <button id="btn-explain" class="explain-btn" type="button" hidden>📖 Explain</button>
+        </div>
+        <p id="detail-summary" class="detail-summary"></p>
+        <div id="detail-complexity" class="detail-complexity"></div>
+        <p id="detail-description" class="detail-description"></p>
       </div>
 
       <!-- VISUALIZERS CANVAS CONTAINERS -->
@@ -144,7 +167,11 @@
       <!-- Line-numbered Code Editor Sandbox -->
       <div id="code-sandbox">
         <div class="editor-header">
-          <span>SANDBOX COMPILE KERNEL (JAVASCRIPT)</span>
+          <span>SOURCE</span>
+          <div class="snippet-tabs">
+            <button class="snippet-tab active" data-lang="javascript">JS</button>
+            <button class="snippet-tab" data-lang="pseudocode">Pseudocode</button>
+          </div>
           <button class="preset-btn" id="btn-compile" style="border-color:var(--neon-green); color:var(--neon-green);">
             ⚛ COMPILE & RUN
           </button>
@@ -186,6 +213,24 @@
     <div id="statusbar-msg">QuantumViz Sandbox IDE Engine initialized successfully.</div>
     <div style="font-family: var(--mono); font-size:9px;">CRT OVERLAY : ACTIVE | CONTEXT: HIGH_VOLTAGE</div>
   </footer>
+
+  <!-- EXPLANATION MODAL (in-depth discussion of the selected algorithm) -->
+  <div id="explain-modal" class="explain-overlay" hidden>
+    <div class="explain-dialog" role="dialog" aria-modal="true" aria-labelledby="explain-title">
+      <div class="explain-header">
+        <h3 id="explain-title">Algorithm</h3>
+        <button id="explain-close" class="explain-close" type="button" aria-label="Close explanation">✕</button>
+      </div>
+      <div id="explain-body" class="explain-content">
+        <!-- Sections rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- API CLIENT (config → thin fetch client → catalog API) -->
+  <script src="config.js"></script>
+  <script src="js/api/client.js"></script>
+  <script src="js/api/algorithmsApi.js"></script>
 
   <!-- MODULAR REVERSIBLE ENGINE SCRIPTS -->
   <script src="js/algorithms.js"></script>
